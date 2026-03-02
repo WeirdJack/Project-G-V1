@@ -9,24 +9,20 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'Kriklu',
-  description: 'Kriklu - A Ludo-meets-Cricket arcade game with dice-based batting on a circular neon board.',
+  description: 'Kriklu - Cricket Reimagined: The Flat-Lay Edition',
   generator: 'v0.app',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Kriklu',
+  },
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/icons/icon-192x192.jpg', sizes: '192x192', type: 'image/jpeg' },
+      { url: '/icons/icon-512x512.jpg', sizes: '512x512', type: 'image/jpeg' },
     ],
-    apple: '/apple-icon.png',
+    apple: '/apple-touch-icon.jpg',
   },
 }
 
