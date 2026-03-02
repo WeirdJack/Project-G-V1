@@ -72,10 +72,12 @@ export function CricketGame() {
           <Scoreboard state={state} />
         </div>
 
-        {/* Center: Board + Umpire + Dice */}
+        {/* Center: Board + Umpire side by side, Dice below */}
         <div className="flex flex-col items-center gap-4 lg:order-2">
-          <GameBoard state={state} />
-          <Umpire state={state} />
+          <div className="flex items-center gap-4">
+            <GameBoard state={state} />
+            <Umpire state={state} />
+          </div>
           <Dice state={state} onRoll={rollDice} />
         </div>
 
