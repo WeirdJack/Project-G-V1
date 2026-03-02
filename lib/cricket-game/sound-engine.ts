@@ -251,3 +251,76 @@ export function stopAllSounds() {
     // Silently fail
   }
 }
+
+/* ─── Background Music Loop ─── */
+
+let bgGain: GainNode | null = null
+let bgOscillators: OscillatorNode[] = []
+let bgPlaying = false
+
+// A mellow, ambient cricket-stadium vibe using layered oscillators
+export function startBackgroundMusic() {
+  if (bgPlaying) return
+  try {
+    const ctx = getCtx()
+    bgGain = ctx.createGain()
+    bgGain.gain.setValueAtTime(0, ctx.currentTime)
+    bgGain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 1.5)
+    bgGain.connect(ctx.destination)
+
+    // Chord pad: C-E-G ambient major chord
+    const notes = [130.81, 164.81, 196.00, 261.63]
+    bgOscillators = notes.map((freq, i) => {
+      const osc = ctx.createOscillator()
+      osc.type = i < 2 ? "sine" : "triangle"
+      osc.frequency.value = freq
+      // Subtle detuning for warmth
+      osc.detune.value = (Math.random() - 0.5) * 8
+      const oscGain = ctx.createGain()
+      oscGain.gain.value = i === 3 ? 0.015 : 0.025
+      osc.connect(oscGain)
+      oscGain.connect(bgGain!)
+      osc.start()
+      return osc
+    })
+
+    // Add a slow LFO to modulate volume for a breathing feel
+    const lfo = ctx.createOscillator()
+    lfo.type = "sine"
+    lfo.frequency.value = 0.15 // very slow
+    const lfoGain = ctx.createGain()
+    lfoGain.gain.value = 0.012
+    lfo.connect(lfoGain)
+    lfoGain.connect(bgGain!.gain)
+    lfo.start()
+    bgOscillators.push(lfo)
+
+    bgPlaying = true
+  } catch {
+    // Silently fail
+  }
+}
+
+export function stopBackgroundMusic() {
+  if (!bgPlaying) return
+  try {
+    if (bgGain) {
+      const ctx = getCtx()
+      bgGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8)
+    }
+    setTimeout(() => {
+      bgOscillators.forEach((osc) => {
+        try { osc.stop() } catch { /* already stopped */ }
+      })
+      bgOscillators = []
+      bgGain = null
+      bgPlaying = false
+    }, 900)
+  } catch {
+    // Silently fail
+  }
+}
+
+export function isBackgroundMusicPlaying() {
+  return bgPlaying
+}

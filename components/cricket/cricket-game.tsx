@@ -1,9 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useCricketGame } from "@/hooks/use-cricket-game"
 import { useGameSounds } from "@/hooks/use-game-sounds"
+import { startBackgroundMusic, stopBackgroundMusic } from "@/lib/cricket-game/sound-engine"
 import { Volume2, VolumeX } from "lucide-react"
+import { SplashScreen } from "./splash-screen"
 import { MatchSetup } from "./match-setup"
 import { TossOverlay } from "./toss-overlay"
 import { GameBoard } from "./game-board"
@@ -17,7 +19,27 @@ import { MatchResult } from "./match-result"
 export function CricketGame() {
   const { state, startMatch, rollDice, startNextInnings, restart } = useCricketGame()
   const [soundEnabled, setSoundEnabled] = useState(true)
+  const [showSplash, setShowSplash] = useState(true)
   useGameSounds(state, soundEnabled)
+
+  // Start bg music when on setup page, stop when match starts
+  useEffect(() => {
+    if (!showSplash && state.phase === "setup" && soundEnabled) {
+      startBackgroundMusic()
+    } else {
+      stopBackgroundMusic()
+    }
+    return () => { stopBackgroundMusic() }
+  }, [showSplash, state.phase, soundEnabled])
+
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false)
+  }, [])
+
+  // Splash screen
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />
+  }
 
   // Setup phase
   if (state.phase === "setup") {
