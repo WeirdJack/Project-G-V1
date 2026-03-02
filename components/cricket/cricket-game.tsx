@@ -1,0 +1,72 @@
+"use client"
+
+import { useCricketGame } from "@/hooks/use-cricket-game"
+import { MatchSetup } from "./match-setup"
+import { TossOverlay } from "./toss-overlay"
+import { GameBoard } from "./game-board"
+import { Dice } from "./dice"
+import { Scoreboard } from "./scoreboard"
+import { CommentaryFeed } from "./commentary-feed"
+import { InningsSummary } from "./innings-summary"
+import { MatchResult } from "./match-result"
+
+export function CricketGame() {
+  const { state, startMatch, rollDice, startNextInnings, restart } = useCricketGame()
+
+  // Setup phase
+  if (state.phase === "setup") {
+    return <MatchSetup onStart={startMatch} />
+  }
+
+  // Toss phase (overlay on top of batting layout)
+  if (state.phase === "toss") {
+    return <TossOverlay state={state} />
+  }
+
+  // Innings break
+  if (state.phase === "innings-break") {
+    return <InningsSummary state={state} onContinue={startNextInnings} />
+  }
+
+  // Match result
+  if (state.phase === "result") {
+    return <MatchResult state={state} onRestart={restart} />
+  }
+
+  // Batting phase - main game UI
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      {/* Top bar */}
+      <header className="flex items-center justify-between border-b border-border/30 px-4 py-2">
+        <h1 className="font-sans text-sm font-semibold text-foreground">
+          Cricket Arcade
+        </h1>
+        <button
+          onClick={restart}
+          className="font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Quit Match
+        </button>
+      </header>
+
+      {/* Main game area */}
+      <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:flex-row lg:items-start lg:justify-center lg:gap-8 lg:p-8">
+        {/* Left column: Scoreboard */}
+        <div className="flex w-full max-w-xs flex-col gap-4 lg:order-1">
+          <Scoreboard state={state} />
+        </div>
+
+        {/* Center: Board + Dice */}
+        <div className="flex flex-col items-center gap-4 lg:order-2">
+          <GameBoard state={state} />
+          <Dice state={state} onRoll={rollDice} />
+        </div>
+
+        {/* Right column: Commentary */}
+        <div className="flex w-full max-w-xs flex-col gap-4 lg:order-3">
+          <CommentaryFeed state={state} />
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -38,23 +38,27 @@
   --sidebar-border: oklch(0.28 0.02 260);
   --sidebar-ring: oklch(0.75 0.18 145);
 
-  --snake-head: oklch(0.8 0.2 145);
-  --snake-body: oklch(0.7 0.18 145);
-  --snake-tail: oklch(0.55 0.14 145);
-  --food: oklch(0.7 0.22 25);
-  --grid-line: oklch(0.2 0.01 260);
-  --game-glow: oklch(0.75 0.18 145);
+  --team-1: oklch(0.75 0.18 145);
+  --team-2: oklch(0.7 0.15 200);
+  --square-run: oklch(0.5 0.08 180);
+  --square-boundary: oklch(0.8 0.2 80);
+  --square-six: oklch(0.85 0.22 65);
+  --square-extra: oklch(0.65 0.18 320);
+  --square-wicket: oklch(0.6 0.22 25);
+  --board-track: oklch(0.18 0.01 260);
 }
 
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
-  --color-snake-head: var(--snake-head);
-  --color-snake-body: var(--snake-body);
-  --color-snake-tail: var(--snake-tail);
-  --color-food: var(--food);
-  --color-grid-line: var(--grid-line);
-  --color-game-glow: var(--game-glow);
+  --color-team-1: var(--team-1);
+  --color-team-2: var(--team-2);
+  --color-square-run: var(--square-run);
+  --color-square-boundary: var(--square-boundary);
+  --color-square-six: var(--square-six);
+  --color-square-extra: var(--square-extra);
+  --color-square-wicket: var(--square-wicket);
+  --color-board-track: var(--board-track);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

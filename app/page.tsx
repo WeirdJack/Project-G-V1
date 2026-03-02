@@ -1,5 +1,5 @@
-import { SnakeGame } from "@/components/snake-game"
+import { CricketGame } from "@/components/cricket/cricket-game"
 
 export default function Page() {
-  return <SnakeGame />
+  return <CricketGame />
 }

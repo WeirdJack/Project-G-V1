@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Snake Game',
-  description: 'A classic snake game with smooth animations, increasing difficulty, and retro-modern design.',
+  title: 'Cricket Arcade',
+  description: 'A Ludo-meets-Cricket arcade game with dice-based batting on a circular neon board.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1a1a2e',
+  themeColor: '#0a0a1a',
   userScalable: false,
 }
 
