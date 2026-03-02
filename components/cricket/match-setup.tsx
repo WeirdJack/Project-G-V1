@@ -103,7 +103,7 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
             Kriklu
           </h1>
           <p className="text-center font-sans text-sm text-muted-foreground">
-            Ludo meets Cricket on a neon board
+            Cricket Reimagined: The Flat-Lay Edition
           </p>
         </div>
 
