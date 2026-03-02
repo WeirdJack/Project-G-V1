@@ -7,6 +7,7 @@ import { GameBoard } from "./game-board"
 import { Dice } from "./dice"
 import { Scoreboard } from "./scoreboard"
 import { CommentaryFeed } from "./commentary-feed"
+import { Umpire } from "./umpire"
 import { InningsSummary } from "./innings-summary"
 import { MatchResult } from "./match-result"
 
@@ -56,9 +57,10 @@ export function CricketGame() {
           <Scoreboard state={state} />
         </div>
 
-        {/* Center: Board + Dice */}
+        {/* Center: Board + Umpire + Dice */}
         <div className="flex flex-col items-center gap-4 lg:order-2">
           <GameBoard state={state} />
+          <Umpire state={state} />
           <Dice state={state} onRoll={rollDice} />
         </div>
 
