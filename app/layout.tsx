@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { CapacitorProvider } from '@/components/capacitor-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -42,7 +43,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        {children}
+        <CapacitorProvider>
+          {children}
+        </CapacitorProvider>
         <Analytics />
       </body>
     </html>
