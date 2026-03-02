@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { CapacitorProvider } from '@/components/capacitor-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -8,24 +9,20 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'Kriklu',
-  description: 'Kriklu - A Ludo-meets-Cricket arcade game with dice-based batting on a circular neon board.',
+  description: 'Kriklu - Cricket Reimagined: The Flat-Lay Edition',
   generator: 'v0.app',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Kriklu',
+  },
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/icons/icon-192x192.jpg', sizes: '192x192', type: 'image/jpeg' },
+      { url: '/icons/icon-512x512.jpg', sizes: '512x512', type: 'image/jpeg' },
     ],
-    apple: '/apple-icon.png',
+    apple: '/apple-touch-icon.jpg',
   },
 }
 
@@ -42,7 +39,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        {children}
+        <CapacitorProvider>
+          {children}
+        </CapacitorProvider>
         <Analytics />
       </body>
     </html>
