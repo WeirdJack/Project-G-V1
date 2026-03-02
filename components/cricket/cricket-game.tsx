@@ -1,6 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { useCricketGame } from "@/hooks/use-cricket-game"
+import { useGameSounds } from "@/hooks/use-game-sounds"
+import { Volume2, VolumeX } from "lucide-react"
 import { MatchSetup } from "./match-setup"
 import { TossOverlay } from "./toss-overlay"
 import { GameBoard } from "./game-board"
@@ -13,6 +16,8 @@ import { MatchResult } from "./match-result"
 
 export function CricketGame() {
   const { state, startMatch, rollDice, startNextInnings, restart } = useCricketGame()
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  useGameSounds(state, soundEnabled)
 
   // Setup phase
   if (state.phase === "setup") {
@@ -42,30 +47,44 @@ export function CricketGame() {
         <h1 className="font-sans text-sm font-semibold text-foreground">
           Cricket Arcade
         </h1>
-        <button
-          onClick={restart}
-          className="font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Quit Match
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSoundEnabled((v) => !v)}
+            className="flex items-center gap-1 font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={soundEnabled ? "Mute sounds" : "Unmute sounds"}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            <span className="sr-only">{soundEnabled ? "Mute" : "Unmute"}</span>
+          </button>
+          <button
+            onClick={restart}
+            className="font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Quit Match
+          </button>
+        </div>
       </header>
 
       {/* Main game area */}
-      <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:flex-row lg:items-start lg:justify-center lg:gap-8 lg:p-8">
-        {/* Left column: Scoreboard */}
-        <div className="flex w-full max-w-xs flex-col gap-4 lg:order-1">
-          <Scoreboard state={state} />
+      <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:p-6">
+        {/* Dice + Umpire + Scoreboard in one horizontal row */}
+        <div className="flex w-full flex-col items-center gap-4 md:flex-row md:items-start md:justify-center md:gap-6">
+          <div className="flex shrink-0 flex-col items-center">
+            <Dice state={state} onRoll={rollDice} />
+          </div>
+          <div className="flex shrink-0 flex-col items-center">
+            <Umpire state={state} />
+          </div>
+          <div className="w-full max-w-xs shrink-0">
+            <Scoreboard state={state} />
+          </div>
         </div>
 
-        {/* Center: Board + Umpire + Dice */}
-        <div className="flex flex-col items-center gap-4 lg:order-2">
-          <GameBoard state={state} />
-          <Umpire state={state} />
-          <Dice state={state} onRoll={rollDice} />
-        </div>
+        {/* Board below */}
+        <GameBoard state={state} />
 
-        {/* Right column: Commentary */}
-        <div className="flex w-full max-w-xs flex-col gap-4 lg:order-3">
+        {/* Commentary at the bottom */}
+        <div className="w-full max-w-2xl">
           <CommentaryFeed state={state} />
         </div>
       </div>
