@@ -67,9 +67,6 @@ export function CricketGame() {
 
       {/* Main game area */}
       <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:p-6">
-        {/* Board at the top */}
-        <GameBoard state={state} />
-
         {/* Dice + Umpire + Scoreboard in one horizontal row */}
         <div className="flex w-full flex-col items-center gap-4 md:flex-row md:items-start md:justify-center md:gap-6">
           <div className="flex shrink-0 flex-col items-center">
@@ -83,7 +80,10 @@ export function CricketGame() {
           </div>
         </div>
 
-        {/* Commentary below */}
+        {/* Board below */}
+        <GameBoard state={state} />
+
+        {/* Commentary at the bottom */}
         <div className="w-full max-w-2xl">
           <CommentaryFeed state={state} />
         </div>
