@@ -1,6 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { useCricketGame } from "@/hooks/use-cricket-game"
+import { useGameSounds } from "@/hooks/use-game-sounds"
+import { Volume2, VolumeX } from "lucide-react"
 import { MatchSetup } from "./match-setup"
 import { TossOverlay } from "./toss-overlay"
 import { GameBoard } from "./game-board"
@@ -13,6 +16,8 @@ import { MatchResult } from "./match-result"
 
 export function CricketGame() {
   const { state, startMatch, rollDice, startNextInnings, restart } = useCricketGame()
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  useGameSounds(state, soundEnabled)
 
   // Setup phase
   if (state.phase === "setup") {
@@ -42,12 +47,22 @@ export function CricketGame() {
         <h1 className="font-sans text-sm font-semibold text-foreground">
           Cricket Arcade
         </h1>
-        <button
-          onClick={restart}
-          className="font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Quit Match
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSoundEnabled((v) => !v)}
+            className="flex items-center gap-1 font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={soundEnabled ? "Mute sounds" : "Unmute sounds"}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            <span className="sr-only">{soundEnabled ? "Mute" : "Unmute"}</span>
+          </button>
+          <button
+            onClick={restart}
+            className="font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Quit Match
+          </button>
+        </div>
       </header>
 
       {/* Main game area */}
