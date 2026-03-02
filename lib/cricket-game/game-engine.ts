@@ -244,27 +244,26 @@ export function applyToss(state: GameState, toss: TossState): GameState {
   }
 }
 
-function generateCommentary(square: Square, batsmanName: string, diceValue: number): string {
-  const prefix = `Dice shows ${diceValue}.`
+function generateCommentary(square: Square, batsmanName: string, _diceValue: number): string {
   switch (square.type) {
     case "single":
-      return `${prefix} ${batsmanName} takes a quick single!`
+      return `${batsmanName} takes a quick single!`
     case "double":
-      return `${prefix} ${batsmanName} pushes for 2 runs!`
+      return `${batsmanName} pushes for 2 runs!`
     case "triple":
-      return `${prefix} Great running! ${batsmanName} picks up 3!`
+      return `Great running! ${batsmanName} picks up 3!`
     case "boundary":
-      return `${prefix} ${batsmanName} smashes it to the BOUNDARY! FOUR!`
+      return `${batsmanName} smashes it to the BOUNDARY! FOUR!`
     case "six":
-      return `${prefix} ${batsmanName} launches it! That's a massive SIX!`
+      return `${batsmanName} launches it! That's a massive SIX!`
     case "wide":
-      return `${prefix} Wide ball! 1 extra run to the batting side.`
+      return `Wide ball! 1 extra run to the batting side.`
     case "no-ball":
-      return `${prefix} No ball! Free hit coming up, 1 run added.`
+      return `No ball! Free hit coming up, 1 run added.`
     case "wicket":
-      return `${prefix} OUT! ${batsmanName} has to walk back!`
+      return `OUT! ${batsmanName} has to walk back!`
     default:
-      return `${prefix} ${batsmanName} plays the delivery.`
+      return `${batsmanName} plays the delivery.`
   }
 }
 

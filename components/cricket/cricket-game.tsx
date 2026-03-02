@@ -66,23 +66,25 @@ export function CricketGame() {
       </header>
 
       {/* Main game area */}
-      <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:flex-row lg:items-start lg:justify-center lg:gap-8 lg:p-8">
-        {/* Left column: Scoreboard */}
-        <div className="flex w-full max-w-xs flex-col gap-4 lg:order-1">
-          <Scoreboard state={state} />
-        </div>
+      <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:p-6">
+        {/* Board at the top */}
+        <GameBoard state={state} />
 
-        {/* Center: Board + Umpire side by side, Dice below */}
-        <div className="flex flex-col items-center gap-4 lg:order-2">
-          <div className="flex items-center gap-4">
-            <GameBoard state={state} />
+        {/* Dice + Umpire + Scoreboard in one horizontal row */}
+        <div className="flex w-full flex-col items-center gap-4 md:flex-row md:items-start md:justify-center md:gap-6">
+          <div className="flex shrink-0 flex-col items-center">
+            <Dice state={state} onRoll={rollDice} />
+          </div>
+          <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
           </div>
-          <Dice state={state} onRoll={rollDice} />
+          <div className="w-full max-w-xs shrink-0">
+            <Scoreboard state={state} />
+          </div>
         </div>
 
-        {/* Right column: Commentary */}
-        <div className="flex w-full max-w-xs flex-col gap-4 lg:order-3">
+        {/* Commentary below */}
+        <div className="w-full max-w-2xl">
           <CommentaryFeed state={state} />
         </div>
       </div>
