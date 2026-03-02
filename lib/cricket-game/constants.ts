@@ -35,10 +35,10 @@ export const BOARD_SQUARES: Square[] = SQUARE_DEFS.map((def, i) => ({
 }))
 
 export const TOTAL_SQUARES = 24
-export const OVERS_OPTIONS = [5, 10, 20] as const
-export const MAX_WICKETS = 10
+export const OVERS_OPTIONS = [2, 5, 10, 20, "test"] as const
+export const PLAYERS_PER_TEAM_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const
 export const BALLS_PER_OVER = 6
-export const TOTAL_PLAYERS = 11
+export const DEFAULT_PLAYERS_PER_TEAM = 11
 
 export const SQUARE_COLORS: Record<SquareType, { bg: string; text: string; glow: string }> = {
   single:   { bg: "#2a5a5a", text: "#8ffff0", glow: "#2a5a5a88" },
@@ -59,15 +59,23 @@ export const DEFAULT_TEAM_NAMES = {
   team2: "Storm XI",
 }
 
-export const PLAYER_NAMES_POOL = [
+export const PLAYER_NAMES_POOL_TEAM1 = [
   "Sharma", "Kohli", "Gill", "Pant", "Jadeja",
   "Rahul", "Iyer", "Pandya", "Bumrah", "Siraj",
-  "Ashwin", "Warner", "Smith", "Labuschagne", "Head",
+  "Ashwin",
+]
+
+export const PLAYER_NAMES_POOL_TEAM2 = [
+  "Warner", "Smith", "Labuschagne", "Head",
   "Carey", "Green", "Cummins", "Starc", "Hazlewood",
   "Lyon", "Williamson",
 ]
 
-export function generatePlayerNames(teamIndex: 0 | 1): string[] {
-  const start = teamIndex * TOTAL_PLAYERS
-  return PLAYER_NAMES_POOL.slice(start, start + TOTAL_PLAYERS)
+export function generateDefaultPlayerNames(teamIndex: 0 | 1, count: number): string[] {
+  const pool = teamIndex === 0 ? PLAYER_NAMES_POOL_TEAM1 : PLAYER_NAMES_POOL_TEAM2
+  const names: string[] = []
+  for (let i = 0; i < count; i++) {
+    names.push(pool[i % pool.length] ?? `Player ${i + 1}`)
+  }
+  return names
 }

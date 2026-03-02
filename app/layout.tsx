@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Cricket Arcade',
-  description: 'A Ludo-meets-Cricket arcade game with dice-based batting on a circular neon board.',
+  title: 'Kriklu',
+  description: 'Kriklu - A Ludo-meets-Cricket arcade game with dice-based batting on a circular neon board.',
   generator: 'v0.app',
   icons: {
     icon: [

@@ -17,7 +17,7 @@ import {
 
 const INITIAL_STATE: GameState = {
   phase: "setup",
-  config: { overs: 5, mode: "local", team1Name: "", team2Name: "" },
+  config: { overs: 5, mode: "local", team1Name: "", team2Name: "", playersPerTeam: 11, team1PlayerNames: [], team2PlayerNames: [] },
   team1: {
     name: "",
     color: "team1",
