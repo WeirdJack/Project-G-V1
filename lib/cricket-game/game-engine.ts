@@ -10,17 +10,21 @@ import type {
 import {
   BOARD_SQUARES,
   TOTAL_SQUARES,
-  MAX_WICKETS,
   BALLS_PER_OVER,
-  TOTAL_PLAYERS,
-  generatePlayerNames,
+  generateDefaultPlayerNames,
 } from "./constants"
 
-function createTeam(name: string, color: "team1" | "team2", teamIndex: 0 | 1): TeamState {
-  const names = generatePlayerNames(teamIndex)
-  const players: Player[] = Array.from({ length: TOTAL_PLAYERS }, (_, i) => ({
+function createTeam(
+  name: string,
+  color: "team1" | "team2",
+  teamIndex: 0 | 1,
+  playerNames: string[],
+  playersPerTeam: number
+): TeamState {
+  const defaults = generateDefaultPlayerNames(teamIndex, playersPerTeam)
+  const players: Player[] = Array.from({ length: playersPerTeam }, (_, i) => ({
     id: i,
-    name: names[i],
+    name: playerNames[i]?.trim() || defaults[i],
     runs: 0,
     ballsFaced: 0,
     isOut: false,
@@ -45,8 +49,8 @@ export function createInitialState(config: MatchConfig): GameState {
   return {
     phase: "toss",
     config,
-    team1: createTeam(config.team1Name, "team1", 0),
-    team2: createTeam(config.team2Name, "team2", 1),
+    team1: createTeam(config.team1Name, "team1", 0, config.team1PlayerNames, config.playersPerTeam),
+    team2: createTeam(config.team2Name, "team2", 1, config.team2PlayerNames, config.playersPerTeam),
     currentInnings: 1,
     battingTeamKey: "team1",
     bowlingTeamKey: "team2",
@@ -94,8 +98,9 @@ export function applySquareEffect(state: GameState): GameState {
     battingTeam.players = [...battingTeam.players]
     battingTeam.players[battingTeam.currentBatsmanIndex] = currentBatsman
 
-    // Move to next batsman
-    if (battingTeam.wickets < MAX_WICKETS) {
+    // Move to next batsman (max wickets = players - 1)
+    const maxWickets = state.config.playersPerTeam - 1
+    if (battingTeam.wickets < maxWickets) {
       battingTeam.currentBatsmanIndex = battingTeam.players.findIndex(
         (p, i) => i > battingTeam.currentBatsmanIndex && !p.isOut
       )
@@ -161,12 +166,13 @@ export function applySquareEffect(state: GameState): GameState {
 
 export function checkInningsEnd(state: GameState): boolean {
   const battingTeam = state[state.battingTeamKey]
+  const maxWickets = state.config.playersPerTeam - 1
 
   // All out
-  if (battingTeam.wickets >= MAX_WICKETS) return true
+  if (battingTeam.wickets >= maxWickets) return true
 
-  // All overs bowled
-  if (battingTeam.overs >= state.config.overs) return true
+  // All overs bowled (test match has no overs limit -- end only on all out or target chased)
+  if (state.config.overs !== "test" && battingTeam.overs >= state.config.overs) return true
 
   // 2nd innings: target chased
   if (state.currentInnings === 2 && state.target !== null) {
@@ -199,18 +205,17 @@ export function switchInnings(state: GameState): GameState {
 }
 
 export function determineResult(state: GameState): string {
-  const team1 = state.team1
-  const team2 = state.team2
   const firstBatKey = state.firstBattingTeamKey
   const firstBat = state[firstBatKey]
   const secondBatKey = firstBatKey === "team1" ? "team2" : "team1"
   const secondBat = state[secondBatKey]
+  const maxWickets = state.config.playersPerTeam - 1
 
   if (firstBat.totalRuns > secondBat.totalRuns) {
     const margin = firstBat.totalRuns - secondBat.totalRuns
     return `${firstBat.name} won by ${margin} run${margin !== 1 ? "s" : ""}!`
   } else if (secondBat.totalRuns > firstBat.totalRuns) {
-    const wicketsLeft = MAX_WICKETS - secondBat.wickets
+    const wicketsLeft = maxWickets - secondBat.wickets
     return `${secondBat.name} won by ${wicketsLeft} wicket${wicketsLeft !== 1 ? "s" : ""}!`
   } else {
     return "Match Tied!"

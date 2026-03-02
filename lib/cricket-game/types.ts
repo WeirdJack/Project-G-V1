@@ -68,11 +68,16 @@ export interface TokenAnimation {
   isAnimating: boolean
 }
 
+export type OversOption = 2 | 5 | 10 | 20 | "test"
+
 export interface MatchConfig {
-  overs: number
+  overs: OversOption
   mode: GameMode
   team1Name: string
   team2Name: string
+  playersPerTeam: number
+  team1PlayerNames: string[]
+  team2PlayerNames: string[]
 }
 
 export interface TossState {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,8 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { MatchConfig, GameMode } from "@/lib/cricket-game/types"
-import { DEFAULT_TEAM_NAMES, OVERS_OPTIONS } from "@/lib/cricket-game/constants"
+import type { MatchConfig, GameMode, OversOption } from "@/lib/cricket-game/types"
+import {
+  DEFAULT_TEAM_NAMES,
+  OVERS_OPTIONS,
+  PLAYERS_PER_TEAM_OPTIONS,
+  DEFAULT_PLAYERS_PER_TEAM,
+  generateDefaultPlayerNames,
+  TEAM_1_COLOR,
+  TEAM_2_COLOR,
+} from "@/lib/cricket-game/constants"
+import { ChevronDown, ChevronUp } from "lucide-react"
 
 interface MatchSetupProps {
   onStart: (config: MatchConfig) => void
@@ -21,9 +30,52 @@ interface MatchSetupProps {
 
 export function MatchSetup({ onStart }: MatchSetupProps) {
   const [mode, setMode] = useState<GameMode>("local")
-  const [overs, setOvers] = useState<number>(5)
+  const [overs, setOvers] = useState<OversOption>(5)
+  const [playersPerTeam, setPlayersPerTeam] = useState<number>(DEFAULT_PLAYERS_PER_TEAM)
   const [team1Name, setTeam1Name] = useState(DEFAULT_TEAM_NAMES.team1)
   const [team2Name, setTeam2Name] = useState(DEFAULT_TEAM_NAMES.team2)
+  const [team1PlayerNames, setTeam1PlayerNames] = useState<string[]>(() =>
+    generateDefaultPlayerNames(0, DEFAULT_PLAYERS_PER_TEAM)
+  )
+  const [team2PlayerNames, setTeam2PlayerNames] = useState<string[]>(() =>
+    generateDefaultPlayerNames(1, DEFAULT_PLAYERS_PER_TEAM)
+  )
+  const [showTeam1Players, setShowTeam1Players] = useState(false)
+  const [showTeam2Players, setShowTeam2Players] = useState(false)
+
+  const handlePlayersChange = useCallback(
+    (count: number) => {
+      setPlayersPerTeam(count)
+      setTeam1PlayerNames((prev) => {
+        const defaults = generateDefaultPlayerNames(0, count)
+        return Array.from({ length: count }, (_, i) => prev[i] ?? defaults[i])
+      })
+      setTeam2PlayerNames((prev) => {
+        const defaults = generateDefaultPlayerNames(1, count)
+        return Array.from({ length: count }, (_, i) => prev[i] ?? defaults[i])
+      })
+    },
+    []
+  )
+
+  const updatePlayerName = useCallback(
+    (team: 1 | 2, index: number, name: string) => {
+      if (team === 1) {
+        setTeam1PlayerNames((prev) => {
+          const next = [...prev]
+          next[index] = name
+          return next
+        })
+      } else {
+        setTeam2PlayerNames((prev) => {
+          const next = [...prev]
+          next[index] = name
+          return next
+        })
+      }
+    },
+    []
+  )
 
   function handleStart() {
     onStart({
@@ -31,7 +83,15 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
       mode,
       team1Name: team1Name.trim() || DEFAULT_TEAM_NAMES.team1,
       team2Name: team2Name.trim() || DEFAULT_TEAM_NAMES.team2,
+      playersPerTeam,
+      team1PlayerNames,
+      team2PlayerNames,
     })
+  }
+
+  function oversLabel(o: OversOption): string {
+    if (o === "test") return "Test Match"
+    return `${o} Overs`
   }
 
   return (
@@ -40,7 +100,7 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
         {/* Title */}
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-balance text-center font-sans text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Cricket Arcade
+            Kriklu
           </h1>
           <p className="text-center font-sans text-sm text-muted-foreground">
             Ludo meets Cricket on a neon board
@@ -78,35 +138,57 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
               </div>
             </div>
 
-            {/* Overs */}
-            <div className="flex flex-col gap-2">
-              <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Overs
-              </Label>
-              <Select
-                value={String(overs)}
-                onValueChange={(v) => setOvers(Number(v))}
-              >
-                <SelectTrigger className="bg-secondary/50 font-mono">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {OVERS_OPTIONS.map((o) => (
-                    <SelectItem key={o} value={String(o)}>
-                      {o} Overs
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Overs + Players per team row */}
+            <div className="flex gap-4">
+              <div className="flex flex-1 flex-col gap-2">
+                <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Match Format
+                </Label>
+                <Select
+                  value={String(overs)}
+                  onValueChange={(v) => setOvers(v === "test" ? "test" : Number(v) as OversOption)}
+                >
+                  <SelectTrigger className="bg-secondary/50 font-mono">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OVERS_OPTIONS.map((o) => (
+                      <SelectItem key={String(o)} value={String(o)}>
+                        {oversLabel(o as OversOption)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-1 flex-col gap-2">
+                <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Players / Team
+                </Label>
+                <Select
+                  value={String(playersPerTeam)}
+                  onValueChange={(v) => handlePlayersChange(Number(v))}
+                >
+                  <SelectTrigger className="bg-secondary/50 font-mono">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PLAYERS_PER_TEAM_OPTIONS.map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n} Players
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* Team Names */}
-            <div className="flex flex-col gap-4">
+            {/* Team 1 */}
+            <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-2">
                 <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   <span
                     className="mr-2 inline-block h-2 w-2 rounded-full"
-                    style={{ backgroundColor: "#4ade80" }}
+                    style={{ backgroundColor: TEAM_1_COLOR }}
                   />
                   Team 1
                 </Label>
@@ -118,11 +200,39 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
                   maxLength={20}
                 />
               </div>
+              <button
+                onClick={() => setShowTeam1Players((v) => !v)}
+                className="flex items-center gap-1 font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {showTeam1Players ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                {showTeam1Players ? "Hide" : "Edit"} Player Names
+              </button>
+              {showTeam1Players && (
+                <div className="flex max-h-48 flex-col gap-2 overflow-y-auto rounded-lg border border-border/30 bg-secondary/20 p-3">
+                  {team1PlayerNames.slice(0, playersPerTeam).map((name, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground">
+                        {i + 1}.
+                      </span>
+                      <Input
+                        value={name}
+                        onChange={(e) => updatePlayerName(1, i, e.target.value)}
+                        className="h-8 bg-secondary/50 font-sans text-xs"
+                        maxLength={20}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Team 2 */}
+            <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-2">
                 <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   <span
                     className="mr-2 inline-block h-2 w-2 rounded-full"
-                    style={{ backgroundColor: "#22d3ee" }}
+                    style={{ backgroundColor: TEAM_2_COLOR }}
                   />
                   {mode === "cpu" ? "CPU Team" : "Team 2"}
                 </Label>
@@ -135,6 +245,30 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
                   disabled={mode === "cpu"}
                 />
               </div>
+              <button
+                onClick={() => setShowTeam2Players((v) => !v)}
+                className="flex items-center gap-1 font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {showTeam2Players ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                {showTeam2Players ? "Hide" : "Edit"} Player Names
+              </button>
+              {showTeam2Players && (
+                <div className="flex max-h-48 flex-col gap-2 overflow-y-auto rounded-lg border border-border/30 bg-secondary/20 p-3">
+                  {team2PlayerNames.slice(0, playersPerTeam).map((name, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground">
+                        {i + 1}.
+                      </span>
+                      <Input
+                        value={name}
+                        onChange={(e) => updatePlayerName(2, i, e.target.value)}
+                        className="h-8 bg-secondary/50 font-sans text-xs"
+                        maxLength={20}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Start Button */}

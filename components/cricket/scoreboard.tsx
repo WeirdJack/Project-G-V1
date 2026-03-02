@@ -16,12 +16,14 @@ export function Scoreboard({ state }: ScoreboardProps) {
   const oversStr = getOverString(batting.overs, batting.balls)
 
   // Target info for 2nd innings
+  const isTest = state.config.overs === "test"
   const targetInfo =
     state.currentInnings === 2 && state.target !== null
       ? {
           remaining: state.target - batting.totalRuns + 1,
-          totalBalls:
-            state.config.overs * 6 - (batting.overs * 6 + batting.balls),
+          totalBalls: isTest
+            ? null
+            : (state.config.overs as number) * 6 - (batting.overs * 6 + batting.balls),
         }
       : null
 
@@ -65,7 +67,10 @@ export function Scoreboard({ state }: ScoreboardProps) {
         {/* Target chase info */}
         {targetInfo && targetInfo.remaining > 0 && (
           <p className="font-sans text-xs text-accent">
-            Need {targetInfo.remaining} from {targetInfo.totalBalls} balls
+            Need {targetInfo.remaining}
+            {targetInfo.totalBalls !== null
+              ? ` from ${targetInfo.totalBalls} balls`
+              : " more runs"}
           </p>
         )}
       </div>
