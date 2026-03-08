@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { playSound, unlockAudio } from "@/lib/cricket-game/sound-engine"
 
 interface SplashScreenProps {
@@ -8,34 +8,45 @@ interface SplashScreenProps {
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const [phase, setPhase] = useState<"enter" | "hold" | "exit">("enter")
+  const [phase, setPhase] = useState<"enter" | "hold" | "ready" | "exit">("enter")
+  const [hasInteracted, setHasInteracted] = useState(false)
 
   useEffect(() => {
     // Enter animation
     const holdTimer = setTimeout(() => setPhase("hold"), 100)
     
-    // Play stumps hit sound after ball appears (300ms delay for animation)
-    const soundTimer = setTimeout(() => {
-      unlockAudio()
-      playSound("stumps-hit")
-    }, 400)
-    
-    // Start exit after 2.5s
-    const exitTimer = setTimeout(() => setPhase("exit"), 2500)
-    // Complete after exit animation finishes
-    const doneTimer = setTimeout(() => onComplete(), 3200)
+    // Show "tap to start" after animation completes
+    const readyTimer = setTimeout(() => setPhase("ready"), 1500)
 
     return () => {
       clearTimeout(holdTimer)
-      clearTimeout(soundTimer)
-      clearTimeout(exitTimer)
-      clearTimeout(doneTimer)
+      clearTimeout(readyTimer)
     }
-  }, [onComplete])
+  }, [])
+
+  // Handle tap to start - this MUST be synchronous with user gesture for iOS audio
+  const handleTap = useCallback(() => {
+    if (hasInteracted || phase === "exit") return
+    setHasInteracted(true)
+    
+    // Unlock audio SYNCHRONOUSLY in the tap handler (required for iOS physical devices)
+    unlockAudio()
+    
+    // Play sound immediately after unlock
+    playSound("stumps-hit")
+    
+    // Start exit animation
+    setPhase("exit")
+    
+    // Complete after exit animation
+    setTimeout(() => onComplete(), 700)
+  }, [hasInteracted, phase, onComplete])
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background cursor-pointer"
+      onClick={handleTap}
+      onTouchStart={handleTap}
       style={{
         opacity: phase === "exit" ? 0 : 1,
         transition: "opacity 0.7s ease-out",
@@ -128,30 +139,26 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         Cricket Reimagined: The Flat-Lay Edition
       </p>
 
-      {/* Loading dots */}
+      {/* Tap to start prompt */}
       <div
-        className="mt-8 flex gap-2"
+        className="mt-8"
         style={{
-          opacity: phase === "enter" ? 0 : phase === "exit" ? 0 : 1,
-          transition: "opacity 0.4s ease-out 0.8s",
+          opacity: phase === "ready" ? 1 : 0,
+          transition: "opacity 0.4s ease-out",
         }}
       >
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="h-2 w-2 rounded-full"
-            style={{
-              backgroundColor: "oklch(0.75 0.18 145)",
-              animation: `splash-dot 1s ease-in-out ${i * 0.2}s infinite`,
-            }}
-          />
-        ))}
+        <p
+          className="font-sans text-sm text-primary"
+          style={{ animation: phase === "ready" ? "splash-pulse 1.5s ease-in-out infinite" : "none" }}
+        >
+          Tap to Start
+        </p>
       </div>
 
       <style jsx>{`
-        @keyframes splash-dot {
-          0%, 100% { transform: scale(1); opacity: 0.4; }
-          50% { transform: scale(1.5); opacity: 1; }
+        @keyframes splash-pulse {
+          0%, 100% { opacity: 0.7; }
+          50% { opacity: 1; }
         }
       `}</style>
     </div>
