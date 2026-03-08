@@ -35,9 +35,13 @@ function getCtx(): AudioContext {
  * Call this on first user interaction to unlock audio on iOS/Android
  */
 export function unlockAudio() {
-  if (audioUnlocked) return
   try {
     const ctx = getCtx()
+    // Always try to resume suspended context (iOS requires this on every interaction sometimes)
+    if (ctx.state === "suspended") {
+      ctx.resume()
+    }
+    if (audioUnlocked) return
     // Play a silent buffer to unlock
     const buffer = ctx.createBuffer(1, 1, 22050)
     const source = ctx.createBufferSource()
@@ -45,9 +49,8 @@ export function unlockAudio() {
     source.connect(ctx.destination)
     source.start(0)
     audioUnlocked = true
-    console.log("[v0] Audio unlocked")
-  } catch (e) {
-    console.log("[v0] Audio unlock failed", e)
+  } catch {
+    // Silently fail
   }
 }
 
@@ -194,20 +197,42 @@ function playStumpsHit() {
 }
 
 function playCoinToss() {
-  // Coin flip sound - metallic spinning and landing
-  // Initial flick
-  playTone(2500, 0.05, "square", 0.08)
-  // Spinning whooshes
-  for (let i = 0; i < 6; i++) {
-    const freq = 1800 - i * 150
-    playTone(freq, 0.06, "sine", 0.05 + i * 0.01, 0.08 + i * 0.1)
+  // Realistic coin flip - thumb flick, spinning in air, catching, and slap reveal
+  const ctx = getCtx()
+  
+  // Initial thumb flick - sharp metallic ping
+  playTone(4000, 0.03, "square", 0.12)
+  playTone(3200, 0.04, "triangle", 0.08, 0.02)
+  
+  // Coin spinning in air - rapid metallic shimmers that slow down
+  const spins = 12
+  for (let i = 0; i < spins; i++) {
+    const delay = 0.06 + i * 0.055 + (i * i * 0.003) // accelerating gaps as it slows
+    const freq = 2800 + Math.sin(i * 0.8) * 400 // wobbling pitch
+    const gain = 0.06 - (i * 0.003) // fading volume
+    playTone(freq, 0.025, "triangle", gain, delay)
   }
-  // Landing clinks
-  playTone(3000, 0.04, "triangle", 0.1, 0.7)
-  playTone(2800, 0.03, "triangle", 0.08, 0.78)
-  playTone(2600, 0.05, "triangle", 0.06, 0.84)
-  // Final settle
-  playTone(2200, 0.08, "sine", 0.04, 0.92)
+  
+  // Catch in palm - soft thud
+  playNoise(0.04, 0.1, 0.75)
+  playTone(300, 0.06, "sine", 0.08, 0.75)
+  
+  // Slap onto hand for reveal - sharp impact
+  playNoise(0.03, 0.12, 0.95)
+  playTone(500, 0.05, "triangle", 0.1, 0.95)
+  
+  // Final ring of the coin settling
+  const ringOsc = ctx.createOscillator()
+  const ringGain = ctx.createGain()
+  ringOsc.type = "sine"
+  ringOsc.frequency.setValueAtTime(2400, ctx.currentTime + 1.0)
+  ringOsc.frequency.exponentialRampToValueAtTime(1800, ctx.currentTime + 1.3)
+  ringGain.gain.setValueAtTime(0.06, ctx.currentTime + 1.0)
+  ringGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.4)
+  ringOsc.connect(ringGain)
+  ringGain.connect(ctx.destination)
+  ringOsc.start(ctx.currentTime + 1.0)
+  ringOsc.stop(ctx.currentTime + 1.4)
 }
 
 /* ─── Public API ─── */
@@ -296,32 +321,39 @@ function processQueue() {
   isSpeaking = true
 
   const utterance = new SpeechSynthesisUtterance(text)
-  utterance.rate = 1.1
+  utterance.rate = 1.0
   utterance.pitch = 1.0
-  utterance.volume = 0.9
+  utterance.volume = 1.0
 
-  // Try to pick an English voice
+  // Try to pick an English voice - prefer local/offline voices on Android
   const voices = window.speechSynthesis.getVoices()
-  const english = voices.find(
-    (v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")
-  ) || voices.find((v) => v.lang.startsWith("en"))
-  if (english) utterance.voice = english
+  const localEnglish = voices.find(
+    (v) => v.lang.startsWith("en") && v.localService === true
+  )
+  const anyEnglish = voices.find((v) => v.lang.startsWith("en"))
+  const defaultVoice = voices[0]
+  utterance.voice = localEnglish || anyEnglish || defaultVoice || null
 
   utterance.onend = () => {
     isSpeaking = false
-    setTimeout(processQueue, 50) // Small delay for mobile
+    setTimeout(processQueue, 100) // Longer delay for Android
   }
-  utterance.onerror = (e) => {
-    console.log("[v0] Speech error", e)
+  utterance.onerror = () => {
     isSpeaking = false
-    setTimeout(processQueue, 50)
+    setTimeout(processQueue, 100)
   }
 
-  // Chrome Android bug: speech can get stuck, cancel first
+  // Android WebView/Chrome workaround: cancel and wait before speaking
   window.speechSynthesis.cancel()
+  
+  // Use longer timeout for Android
+  const isAndroid = /android/i.test(navigator.userAgent)
   setTimeout(() => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel()
+    }
     window.speechSynthesis.speak(utterance)
-  }, 10)
+  }, isAndroid ? 50 : 10)
 }
 
 export function speakCommentary(text: string) {

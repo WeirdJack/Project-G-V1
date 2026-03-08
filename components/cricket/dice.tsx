@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import type { GameState } from "@/lib/cricket-game/types"
 import { isCpuBatting } from "@/lib/cricket-game/game-engine"
 import { TEAM_1_COLOR, TEAM_2_COLOR } from "@/lib/cricket-game/constants"
+import { unlockAudio } from "@/lib/cricket-game/sound-engine"
 
 interface DiceProps {
   state: GameState
@@ -71,7 +72,7 @@ export function Dice({ state, onRoll }: DiceProps) {
   return (
     <div className="flex flex-col items-center gap-3">
       <button
-        onClick={canRoll ? onRoll : undefined}
+        onClick={canRoll ? () => { unlockAudio(); onRoll(); } : undefined}
         disabled={!canRoll}
         className="group relative"
         style={{ perspective: "600px" }}
@@ -124,7 +125,7 @@ export function Dice({ state, onRoll }: DiceProps) {
           : isCpu
             ? "CPU is playing..."
             : canRoll
-              ? "Tap to roll"
+              ? "Roll to play"
               : ""}
       </p>
 
