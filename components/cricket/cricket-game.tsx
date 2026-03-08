@@ -89,9 +89,14 @@ export function CricketGame() {
 
       {/* Main game area */}
       <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:p-6">
-        {/* Umpire at the top */}
-        <div className="flex shrink-0 flex-col items-center">
-          <Umpire state={state} />
+        {/* Umpire + Commentary side by side */}
+        <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center sm:gap-6">
+          <div className="flex shrink-0 flex-col items-center">
+            <Umpire state={state} />
+          </div>
+          <div className="w-full max-w-xs shrink-0">
+            <CommentaryFeed state={state} />
+          </div>
         </div>
 
         {/* Dice + Scoreboard side by side */}
@@ -106,11 +111,6 @@ export function CricketGame() {
 
         {/* Board below */}
         <GameBoard state={state} />
-
-        {/* Commentary at the bottom */}
-        <div className="w-full max-w-2xl">
-          <CommentaryFeed state={state} />
-        </div>
       </div>
     </div>
   )
