@@ -18,7 +18,6 @@ type SquareSound =
 
 let audioCtx: AudioContext | null = null
 let audioUnlocked = false
-let unlockAttempts = 0
 
 function getCtx(): AudioContext {
   if (!audioCtx) {
@@ -26,49 +25,54 @@ function getCtx(): AudioContext {
     const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     audioCtx = new AudioContextClass()
   }
-  // Always try to resume on iOS - it can suspend at any time
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume().catch(() => {})
-  }
   return audioCtx
 }
 
 /**
- * Call this on user interactions to unlock/resume audio on iOS/Android
- * iOS is particularly strict - call this on every tap/click
+ * Call this SYNCHRONOUSLY on user tap/click to unlock audio on iOS physical devices.
+ * Must be called in the same call stack as the user gesture - not in setTimeout/Promise.
  */
 export function unlockAudio() {
   try {
     const ctx = getCtx()
     
-    // Always try to resume - iOS can suspend context anytime
+    // Resume suspended context - MUST happen synchronously in user gesture
     if (ctx.state === "suspended") {
-      ctx.resume().catch(() => {})
+      ctx.resume()
     }
     
-    // Only do the full unlock sequence a few times
-    if (audioUnlocked && unlockAttempts > 3) return
-    unlockAttempts++
+    if (audioUnlocked) return
     
-    // Play a silent buffer to unlock (required for iOS WebKit)
+    // Play a silent buffer to unlock (required for iOS WebKit on physical devices)
     const buffer = ctx.createBuffer(1, 1, 22050)
     const source = ctx.createBufferSource()
     source.buffer = buffer
     source.connect(ctx.destination)
     source.start(0)
     
-    // Also create and immediately stop an oscillator (helps on some iOS versions)
+    // Create oscillator immediately (helps unlock on physical iOS)
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
-    gain.gain.value = 0
+    gain.gain.value = 0.001 // Near-silent but not zero
     osc.connect(gain)
     gain.connect(ctx.destination)
     osc.start(0)
-    osc.stop(ctx.currentTime + 0.001)
+    osc.stop(ctx.currentTime + 0.01)
     
     audioUnlocked = true
   } catch {
     // Silently fail
+  }
+}
+
+/**
+ * Ensure audio context is ready before playing sounds.
+ * Call this before any playSound() call.
+ */
+function ensureAudioReady() {
+  const ctx = getCtx()
+  if (ctx.state === "suspended") {
+    ctx.resume()
   }
 }
 
@@ -257,6 +261,7 @@ function playCoinToss() {
 
 export function playSound(type: SquareSound) {
   try {
+    ensureAudioReady()
     switch (type) {
       case "single":
         playSingle()
