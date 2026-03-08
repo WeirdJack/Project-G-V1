@@ -90,23 +90,23 @@ export function CricketGame() {
       </header>
 
       {/* Main game area */}
-      <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:p-6">
-        {/* Umpire + Commentary side by side */}
-        <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center sm:gap-6">
+      <div className="flex flex-1 flex-col items-center gap-2 p-2">
+        {/* Umpire + Commentary side by side - always horizontal */}
+        <div className="flex w-full items-start justify-center gap-3">
           <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
           </div>
-          <div className="w-full max-w-xs shrink-0">
+          <div className="min-w-0 flex-1 max-w-[200px]">
             <CommentaryFeed state={state} />
           </div>
         </div>
 
-        {/* Dice + Scoreboard side by side */}
-        <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center sm:gap-6">
+        {/* Dice + Scoreboard side by side - always horizontal */}
+        <div className="flex w-full items-start justify-center gap-3">
           <div className="flex shrink-0 flex-col items-center">
             <Dice state={state} onRoll={rollDice} />
           </div>
-          <div className="w-full max-w-xs shrink-0">
+          <div className="min-w-0 flex-1 max-w-[200px]">
             <Scoreboard state={state} />
           </div>
         </div>
