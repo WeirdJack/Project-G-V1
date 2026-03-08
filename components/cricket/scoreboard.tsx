@@ -114,7 +114,7 @@ export function ThisOver({ state }: ScoreboardProps) {
 
   return (
     <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-card/60 px-3 py-2">
-      <span className="font-sans text-xs text-muted-foreground">Over {currentOver + 1}:</span>
+      <span className="font-sans text-xs text-muted-foreground">This over:</span>
       <div className="flex flex-wrap items-center gap-1.5">
         {currentOverEvents.map((e, i) => (
           <span
