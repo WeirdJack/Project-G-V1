@@ -142,8 +142,8 @@ export function GameBoard({ state }: GameBoardProps) {
       }
 
       // Center area - cricket pitch graphic
-      const pitchW = minDim * 0.12
-      const pitchH = minDim * 0.22
+      const pitchW = minDim * 0.14
+      const pitchH = minDim * 0.28
       ctx.save()
       ctx.fillStyle = "#1a2a1a"
       ctx.strokeStyle = "#2a4a2a"
@@ -159,8 +159,8 @@ export function GameBoard({ state }: GameBoardProps) {
       // Crease lines
       ctx.strokeStyle = "#4a6a4a"
       ctx.lineWidth = 1
-      const creaseY1 = cy - pitchH * 0.35
-      const creaseY2 = cy + pitchH * 0.35
+      const creaseY1 = cy - pitchH * 0.38
+      const creaseY2 = cy + pitchH * 0.38
       ctx.beginPath()
       ctx.moveTo(cx - pitchW * 0.35, creaseY1)
       ctx.lineTo(cx + pitchW * 0.35, creaseY1)
@@ -175,6 +175,144 @@ export function GameBoard({ state }: GameBoardProps) {
           ctx.fillRect(cx + s * 3 - 0.5, creaseY - 4, 1.5, 8)
         }
       }
+
+      // --- Animated Players ---
+      const playerScale = minDim * 0.008
+
+      // Helper to draw a stick figure player
+      const drawPlayer = (
+        px: number,
+        py: number,
+        scale: number,
+        color: string,
+        armAngle: number,
+        legOffset: number,
+        hasBat: boolean
+      ) => {
+        ctx.save()
+        ctx.translate(px, py)
+        ctx.strokeStyle = color
+        ctx.fillStyle = color
+        ctx.lineWidth = scale * 0.4
+        ctx.lineCap = "round"
+
+        // Head
+        ctx.beginPath()
+        ctx.arc(0, -scale * 3.5, scale * 0.8, 0, Math.PI * 2)
+        ctx.fill()
+
+        // Body
+        ctx.beginPath()
+        ctx.moveTo(0, -scale * 2.7)
+        ctx.lineTo(0, 0)
+        ctx.stroke()
+
+        // Arms
+        const armSwing = Math.sin(armAngle) * scale * 1.2
+        ctx.beginPath()
+        ctx.moveTo(0, -scale * 2)
+        ctx.lineTo(-scale * 1.2 + armSwing * 0.3, -scale * 0.8)
+        ctx.moveTo(0, -scale * 2)
+        ctx.lineTo(scale * 1.2 - armSwing * 0.3, -scale * 0.8 + armSwing)
+        ctx.stroke()
+
+        // Bat (for batsman)
+        if (hasBat) {
+          ctx.strokeStyle = "#c9a66b"
+          ctx.lineWidth = scale * 0.5
+          const batX = scale * 1.2 - armSwing * 0.3
+          const batY = -scale * 0.8 + armSwing
+          ctx.beginPath()
+          ctx.moveTo(batX, batY)
+          ctx.lineTo(batX + scale * 1.5, batY + scale * 1.2)
+          ctx.stroke()
+          ctx.strokeStyle = color
+          ctx.lineWidth = scale * 0.4
+        }
+
+        // Legs
+        ctx.beginPath()
+        ctx.moveTo(0, 0)
+        ctx.lineTo(-scale * 0.6 + legOffset * 0.5, scale * 2)
+        ctx.moveTo(0, 0)
+        ctx.lineTo(scale * 0.6 - legOffset * 0.5, scale * 2)
+        ctx.stroke()
+
+        ctx.restore()
+      }
+
+      // Batsman (striker) at bottom crease - batting stance with slight sway
+      const batsmanSway = Math.sin(time * 2) * 0.3
+      const batsmanArmSwing = Math.sin(time * 1.5) * 0.8
+      drawPlayer(
+        cx + pitchW * 0.15,
+        creaseY2 + playerScale * 1,
+        playerScale,
+        "#e8e8e8",
+        batsmanArmSwing,
+        batsmanSway,
+        true
+      )
+
+      // Non-striker at top crease - idle stance
+      const nonStrikerSway = Math.sin(time * 1.8 + 1) * 0.2
+      drawPlayer(
+        cx - pitchW * 0.2,
+        creaseY1 + playerScale * 2,
+        playerScale * 0.9,
+        "#c8c8c8",
+        0,
+        nonStrikerSway,
+        true
+      )
+
+      // Bowler - running/bowling animation
+      const bowlerPhase = (time * 3) % (Math.PI * 2)
+      const bowlerRunCycle = Math.sin(bowlerPhase) * playerScale * 0.8
+      const bowlerArmAction = Math.sin(bowlerPhase * 0.5) * 2.5
+      const bowlerY = cy - pitchH * 0.08 + Math.abs(Math.sin(bowlerPhase * 2)) * playerScale * 0.5
+      drawPlayer(
+        cx,
+        bowlerY,
+        playerScale * 0.95,
+        "#aaccff",
+        bowlerArmAction,
+        bowlerRunCycle,
+        false
+      )
+
+      // Wicket keeper behind striker
+      const keeperSway = Math.sin(time * 2.2) * 0.15
+      ctx.save()
+      ctx.translate(cx - pitchW * 0.25, creaseY2 + playerScale * 4)
+      ctx.strokeStyle = "#aaccff"
+      ctx.fillStyle = "#aaccff"
+      ctx.lineWidth = playerScale * 0.35
+      ctx.lineCap = "round"
+      // Crouched keeper
+      ctx.beginPath()
+      ctx.arc(0, -playerScale * 2, playerScale * 0.7, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(0, -playerScale * 1.3)
+      ctx.lineTo(0, playerScale * 0.2)
+      ctx.stroke()
+      // Crouched legs
+      ctx.beginPath()
+      ctx.moveTo(0, playerScale * 0.2)
+      ctx.lineTo(-playerScale * 0.8 + keeperSway, playerScale * 1)
+      ctx.moveTo(0, playerScale * 0.2)
+      ctx.lineTo(playerScale * 0.8 - keeperSway, playerScale * 1)
+      ctx.stroke()
+      // Arms ready
+      ctx.beginPath()
+      ctx.moveTo(0, -playerScale * 0.8)
+      ctx.lineTo(-playerScale * 1.2, -playerScale * 0.3)
+      ctx.moveTo(0, -playerScale * 0.8)
+      ctx.lineTo(playerScale * 1.2, -playerScale * 0.3)
+      ctx.stroke()
+      ctx.restore()
+
       ctx.restore()
 
       // Center text: innings info
