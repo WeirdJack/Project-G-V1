@@ -15,15 +15,38 @@ type SquareSound =
   | "dice-roll"
 
 let audioCtx: AudioContext | null = null
+let audioUnlocked = false
 
 function getCtx(): AudioContext {
   if (!audioCtx) {
-    audioCtx = new AudioContext()
+    // Use webkit prefix for older iOS
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    audioCtx = new AudioContextClass()
   }
   if (audioCtx.state === "suspended") {
     audioCtx.resume()
   }
   return audioCtx
+}
+
+/**
+ * Call this on first user interaction to unlock audio on iOS/Android
+ */
+export function unlockAudio() {
+  if (audioUnlocked) return
+  try {
+    const ctx = getCtx()
+    // Play a silent buffer to unlock
+    const buffer = ctx.createBuffer(1, 1, 22050)
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    source.connect(ctx.destination)
+    source.start(0)
+    audioUnlocked = true
+    console.log("[v0] Audio unlocked")
+  } catch (e) {
+    console.log("[v0] Audio unlock failed", e)
+  }
 }
 
 /* ─── Utility oscillator helper ─── */
@@ -192,6 +215,35 @@ export function playSound(type: SquareSound) {
 
 let isSpeaking = false
 const speechQueue: string[] = []
+let voicesLoaded = false
+
+// Preload voices on mobile (needed for Android)
+function loadVoices(): Promise<SpeechSynthesisVoice[]> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      resolve([])
+      return
+    }
+    const voices = window.speechSynthesis.getVoices()
+    if (voices.length > 0) {
+      voicesLoaded = true
+      resolve(voices)
+      return
+    }
+    // Wait for voices to load (Android needs this)
+    window.speechSynthesis.onvoiceschanged = () => {
+      voicesLoaded = true
+      resolve(window.speechSynthesis.getVoices())
+    }
+    // Timeout fallback
+    setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000)
+  })
+}
+
+// Initialize voices early
+if (typeof window !== "undefined") {
+  loadVoices()
+}
 
 function processQueue() {
   if (isSpeaking || speechQueue.length === 0) return
@@ -203,7 +255,7 @@ function processQueue() {
   const utterance = new SpeechSynthesisUtterance(text)
   utterance.rate = 1.1
   utterance.pitch = 1.0
-  utterance.volume = 0.8
+  utterance.volume = 0.9
 
   // Try to pick an English voice
   const voices = window.speechSynthesis.getVoices()
@@ -214,14 +266,19 @@ function processQueue() {
 
   utterance.onend = () => {
     isSpeaking = false
-    processQueue()
+    setTimeout(processQueue, 50) // Small delay for mobile
   }
-  utterance.onerror = () => {
+  utterance.onerror = (e) => {
+    console.log("[v0] Speech error", e)
     isSpeaking = false
-    processQueue()
+    setTimeout(processQueue, 50)
   }
 
-  window.speechSynthesis.speak(utterance)
+  // Chrome Android bug: speech can get stuck, cancel first
+  window.speechSynthesis.cancel()
+  setTimeout(() => {
+    window.speechSynthesis.speak(utterance)
+  }, 10)
 }
 
 export function speakCommentary(text: string) {
@@ -234,9 +291,14 @@ export function speakCommentary(text: string) {
       speechQueue.length = 0
     }
     speechQueue.push(text)
-    processQueue()
-  } catch {
-    // Silently fail
+    // Ensure voices are loaded before speaking
+    if (!voicesLoaded) {
+      loadVoices().then(() => processQueue())
+    } else {
+      processQueue()
+    }
+  } catch (e) {
+    console.log("[v0] speakCommentary error", e)
   }
 }
 

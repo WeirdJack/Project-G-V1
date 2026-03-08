@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { useCricketGame } from "@/hooks/use-cricket-game"
 import { useGameSounds } from "@/hooks/use-game-sounds"
-import { startBackgroundMusic, stopBackgroundMusic } from "@/lib/cricket-game/sound-engine"
+import { startBackgroundMusic, stopBackgroundMusic, unlockAudio } from "@/lib/cricket-game/sound-engine"
 import { Volume2, VolumeX } from "lucide-react"
 import { SplashScreen } from "./splash-screen"
 import { MatchSetup } from "./match-setup"
@@ -33,6 +33,8 @@ export function CricketGame() {
   }, [showSplash, state.phase, soundEnabled])
 
   const handleSplashComplete = useCallback(() => {
+    // Unlock audio on first user interaction (required for iOS/Android)
+    unlockAudio()
     setShowSplash(false)
   }, [])
 
@@ -63,7 +65,7 @@ export function CricketGame() {
 
   // Batting phase - main game UI
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background" onClick={unlockAudio}>
       {/* Top bar */}
       <header className="flex items-center justify-between border-b border-border/30 px-4 py-2">
         <h1 className="font-sans text-sm font-semibold text-foreground">
@@ -89,13 +91,20 @@ export function CricketGame() {
 
       {/* Main game area */}
       <div className="flex flex-1 flex-col items-center gap-4 p-4 lg:p-6">
-        {/* Dice + Umpire + Scoreboard in one horizontal row */}
-        <div className="flex w-full flex-col items-center gap-4 md:flex-row md:items-start md:justify-center md:gap-6">
-          <div className="flex shrink-0 flex-col items-center">
-            <Dice state={state} onRoll={rollDice} />
-          </div>
+        {/* Umpire + Commentary side by side */}
+        <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center sm:gap-6">
           <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
+          </div>
+          <div className="w-full max-w-xs shrink-0">
+            <CommentaryFeed state={state} />
+          </div>
+        </div>
+
+        {/* Dice + Scoreboard side by side */}
+        <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center sm:gap-6">
+          <div className="flex shrink-0 flex-col items-center">
+            <Dice state={state} onRoll={rollDice} />
           </div>
           <div className="w-full max-w-xs shrink-0">
             <Scoreboard state={state} />
@@ -104,11 +113,6 @@ export function CricketGame() {
 
         {/* Board below */}
         <GameBoard state={state} />
-
-        {/* Commentary at the bottom */}
-        <div className="w-full max-w-2xl">
-          <CommentaryFeed state={state} />
-        </div>
       </div>
     </div>
   )
