@@ -1,13 +1,24 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import type { GameState } from "@/lib/cricket-game/types"
 import { TEAM_1_COLOR, TEAM_2_COLOR } from "@/lib/cricket-game/constants"
+import { playSound } from "@/lib/cricket-game/sound-engine"
 
 interface TossOverlayProps {
   state: GameState
 }
 
 export function TossOverlay({ state }: TossOverlayProps) {
+  const soundPlayedRef = useRef(false)
+
+  useEffect(() => {
+    if (state.toss && !soundPlayedRef.current) {
+      playSound("coin-toss")
+      soundPlayedRef.current = true
+    }
+  }, [state.toss])
+
   if (!state.toss) return null
 
   const winnerName = state.toss.winner === "team1" ? state.team1.name : state.team2.name

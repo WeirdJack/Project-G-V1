@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { playSound, unlockAudio } from "@/lib/cricket-game/sound-engine"
 
 interface SplashScreenProps {
   onComplete: () => void
@@ -12,6 +13,13 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   useEffect(() => {
     // Enter animation
     const holdTimer = setTimeout(() => setPhase("hold"), 100)
+    
+    // Play stumps hit sound after ball appears (300ms delay for animation)
+    const soundTimer = setTimeout(() => {
+      unlockAudio()
+      playSound("stumps-hit")
+    }, 400)
+    
     // Start exit after 2.5s
     const exitTimer = setTimeout(() => setPhase("exit"), 2500)
     // Complete after exit animation finishes
@@ -19,6 +27,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
     return () => {
       clearTimeout(holdTimer)
+      clearTimeout(soundTimer)
       clearTimeout(exitTimer)
       clearTimeout(doneTimer)
     }
