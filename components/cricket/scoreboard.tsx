@@ -12,7 +12,8 @@ export function Scoreboard({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
   const bowling = state[state.bowlingTeamKey]
   const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
-  const currentBatsman = batting.players[batting.currentBatsmanIndex]
+  const striker = batting.players[batting.currentBatsmanIndex]
+  const nonStriker = batting.players[batting.nonStrikerIndex]
   const oversStr = getOverString(batting.overs, batting.balls)
 
   // Target info for 2nd innings
@@ -60,20 +61,37 @@ export function Scoreboard({ state }: ScoreboardProps) {
           </span>
         </div>
 
-        {/* Current batsman - inside the card */}
-        {currentBatsman && !currentBatsman.isOut && (
-          <div className="flex items-center justify-between border-t border-border/30 pt-2">
-            <span className="font-sans text-xs text-muted-foreground">
-              {currentBatsman.name}*
-            </span>
-            <span className="font-mono text-sm font-semibold" style={{ color: battingColor }}>
-              {currentBatsman.runs}
-              <span className="text-[10px] text-muted-foreground ml-0.5">
-                ({currentBatsman.ballsFaced})
+        {/* Batsmen - striker and non-striker */}
+        <div className="flex flex-col gap-1 border-t border-border/30 pt-2">
+          {/* Striker */}
+          {striker && !striker.isOut && (
+            <div className="flex items-center justify-between">
+              <span className="font-sans text-xs text-muted-foreground">
+                {striker.name}*
               </span>
-            </span>
-          </div>
-        )}
+              <span className="font-mono text-sm font-semibold" style={{ color: battingColor }}>
+                {striker.runs}
+                <span className="text-[10px] text-muted-foreground ml-0.5">
+                  ({striker.ballsFaced})
+                </span>
+              </span>
+            </div>
+          )}
+          {/* Non-striker */}
+          {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
+            <div className="flex items-center justify-between">
+              <span className="font-sans text-[10px] text-muted-foreground/70">
+                {nonStriker.name}
+              </span>
+              <span className="font-mono text-xs text-muted-foreground">
+                {nonStriker.runs}
+                <span className="text-[10px] text-muted-foreground/70 ml-0.5">
+                  ({nonStriker.ballsFaced})
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* Target chase info */}
         {targetInfo && targetInfo.remaining > 0 && (

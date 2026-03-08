@@ -46,6 +46,7 @@ export interface TeamState {
   overs: number
   balls: number
   currentBatsmanIndex: number
+  nonStrikerIndex: number
   extras: {
     wides: number
     noBalls: number
