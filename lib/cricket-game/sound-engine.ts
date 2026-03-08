@@ -18,6 +18,7 @@ type SquareSound =
 
 let audioCtx: AudioContext | null = null
 let audioUnlocked = false
+let unlockAttempts = 0
 
 function getCtx(): AudioContext {
   if (!audioCtx) {
@@ -25,29 +26,46 @@ function getCtx(): AudioContext {
     const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     audioCtx = new AudioContextClass()
   }
+  // Always try to resume on iOS - it can suspend at any time
   if (audioCtx.state === "suspended") {
-    audioCtx.resume()
+    audioCtx.resume().catch(() => {})
   }
   return audioCtx
 }
 
 /**
- * Call this on first user interaction to unlock audio on iOS/Android
+ * Call this on user interactions to unlock/resume audio on iOS/Android
+ * iOS is particularly strict - call this on every tap/click
  */
 export function unlockAudio() {
   try {
     const ctx = getCtx()
-    // Always try to resume suspended context (iOS requires this on every interaction sometimes)
+    
+    // Always try to resume - iOS can suspend context anytime
     if (ctx.state === "suspended") {
-      ctx.resume()
+      ctx.resume().catch(() => {})
     }
-    if (audioUnlocked) return
-    // Play a silent buffer to unlock
+    
+    // Only do the full unlock sequence a few times
+    if (audioUnlocked && unlockAttempts > 3) return
+    unlockAttempts++
+    
+    // Play a silent buffer to unlock (required for iOS WebKit)
     const buffer = ctx.createBuffer(1, 1, 22050)
     const source = ctx.createBufferSource()
     source.buffer = buffer
     source.connect(ctx.destination)
     source.start(0)
+    
+    // Also create and immediately stop an oscillator (helps on some iOS versions)
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    gain.gain.value = 0
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(0)
+    osc.stop(ctx.currentTime + 0.001)
+    
     audioUnlocked = true
   } catch {
     // Silently fail
@@ -284,11 +302,33 @@ export function playSound(type: SquareSound) {
 let isSpeaking = false
 const speechQueue: string[] = []
 let voicesLoaded = false
+let speechSupported: boolean | null = null
+
+// Check if speech synthesis is actually supported and working
+function checkSpeechSupport(): boolean {
+  if (speechSupported !== null) return speechSupported
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    speechSupported = false
+    return false
+  }
+  // Android WebView may have speechSynthesis but it doesn't always work
+  const isAndroid = /android/i.test(navigator.userAgent)
+  const isCapacitor = typeof (window as unknown as {Capacitor?: unknown}).Capacitor !== "undefined"
+  
+  // On Android Capacitor, speech synthesis is unreliable - disable it
+  if (isAndroid && isCapacitor) {
+    speechSupported = false
+    return false
+  }
+  
+  speechSupported = true
+  return true
+}
 
 // Preload voices on mobile (needed for Android)
 function loadVoices(): Promise<SpeechSynthesisVoice[]> {
   return new Promise((resolve) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) {
+    if (!checkSpeechSupport()) {
       resolve([])
       return
     }
@@ -298,13 +338,17 @@ function loadVoices(): Promise<SpeechSynthesisVoice[]> {
       resolve(voices)
       return
     }
-    // Wait for voices to load (Android needs this)
+    // Wait for voices to load
     window.speechSynthesis.onvoiceschanged = () => {
       voicesLoaded = true
       resolve(window.speechSynthesis.getVoices())
     }
     // Timeout fallback
-    setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000)
+    setTimeout(() => {
+      const v = window.speechSynthesis?.getVoices() || []
+      voicesLoaded = v.length > 0
+      resolve(v)
+    }, 1000)
   })
 }
 
@@ -315,7 +359,10 @@ if (typeof window !== "undefined") {
 
 function processQueue() {
   if (isSpeaking || speechQueue.length === 0) return
-  if (typeof window === "undefined" || !window.speechSynthesis) return
+  if (!checkSpeechSupport()) {
+    speechQueue.length = 0
+    return
+  }
 
   const text = speechQueue.shift()!
   isSpeaking = true
@@ -325,7 +372,7 @@ function processQueue() {
   utterance.pitch = 1.0
   utterance.volume = 1.0
 
-  // Try to pick an English voice - prefer local/offline voices on Android
+  // Try to pick an English voice - prefer local/offline voices
   const voices = window.speechSynthesis.getVoices()
   const localEnglish = voices.find(
     (v) => v.lang.startsWith("en") && v.localService === true
@@ -336,29 +383,23 @@ function processQueue() {
 
   utterance.onend = () => {
     isSpeaking = false
-    setTimeout(processQueue, 100) // Longer delay for Android
+    setTimeout(processQueue, 100)
   }
   utterance.onerror = () => {
     isSpeaking = false
     setTimeout(processQueue, 100)
   }
 
-  // Android WebView/Chrome workaround: cancel and wait before speaking
+  // Cancel any existing speech and speak
   window.speechSynthesis.cancel()
-  
-  // Use longer timeout for Android
-  const isAndroid = /android/i.test(navigator.userAgent)
   setTimeout(() => {
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel()
-    }
     window.speechSynthesis.speak(utterance)
-  }, isAndroid ? 50 : 10)
+  }, 20)
 }
 
 export function speakCommentary(text: string) {
   try {
-    if (typeof window === "undefined" || !window.speechSynthesis) return
+    if (!checkSpeechSupport()) return
     // Cancel any pending speech if queue is long
     if (speechQueue.length > 2) {
       window.speechSynthesis.cancel()
@@ -372,8 +413,8 @@ export function speakCommentary(text: string) {
     } else {
       processQueue()
     }
-  } catch (e) {
-    console.log("[v0] speakCommentary error", e)
+  } catch {
+    // Silently fail
   }
 }
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import type { GameState } from "@/lib/cricket-game/types"
-import { playSound, speakCommentary, stopAllSounds } from "@/lib/cricket-game/sound-engine"
+import { playSound, speakCommentary, stopAllSounds, unlockAudio } from "@/lib/cricket-game/sound-engine"
 
 /**
  * Watches game state and triggers sounds + spoken commentary
@@ -20,6 +20,7 @@ export function useGameSounds(state: GameState, enabled: boolean = true) {
   useEffect(() => {
     if (!enabled) return
     if (state.dice.isRolling && !diceWasRollingRef.current) {
+      unlockAudio() // Ensure audio is unlocked on iOS
       playSound("dice-roll")
     }
     diceWasRollingRef.current = state.dice.isRolling
@@ -39,6 +40,9 @@ export function useGameSounds(state: GameState, enabled: boolean = true) {
     const latestEvent = battingTeam.ballEvents[battingTeam.ballEvents.length - 1]
     if (!latestEvent) return
 
+    // Ensure audio is unlocked on iOS before playing
+    unlockAudio()
+    
     // Play the matching sound effect
     playSound(latestEvent.squareType)
 
