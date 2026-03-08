@@ -12,8 +12,8 @@ export function CommentaryFeed({ state }: CommentaryFeedProps) {
 
   if (recentEvents.length === 0) {
     return (
-      <div className="w-full rounded-xl border border-border/30 bg-card/60 p-3">
-        <p className="font-sans text-xs text-muted-foreground">
+      <div className="flex h-full max-h-[180px] w-full items-center justify-center rounded-xl border border-border/30 bg-card/60 p-2">
+        <p className="font-sans text-[10px] text-muted-foreground">
           Waiting for first delivery...
         </p>
       </div>
@@ -21,8 +21,8 @@ export function CommentaryFeed({ state }: CommentaryFeedProps) {
   }
 
   return (
-    <div className="flex w-full flex-col gap-1 rounded-xl border border-border/30 bg-card/60 p-3">
-      <h3 className="mb-1 font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
+    <div className="flex h-full max-h-[180px] w-full flex-col gap-1 overflow-hidden rounded-xl border border-border/30 bg-card/60 p-2">
+      <h3 className="mb-0.5 font-sans text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
         Commentary
       </h3>
       {recentEvents.map((event, i) => (
