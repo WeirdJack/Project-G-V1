@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --status-bar-height: 0px;
   --background: oklch(0.13 0.01 260);
   --foreground: oklch(0.95 0.01 110);
   --card: oklch(0.17 0.01 260);
@@ -104,9 +105,9 @@
   body {
     @apply bg-background text-foreground;
     /* Safe area insets for mobile notches and status bars */
-    padding-top: env(safe-area-inset-top, 0);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    padding-left: env(safe-area-inset-left, 0);
-    padding-right: env(safe-area-inset-right, 0);
+    padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 }

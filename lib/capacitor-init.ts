@@ -11,6 +11,13 @@ export async function initCapacitor() {
   const { StatusBar, Style } = await import("@capacitor/status-bar")
   await StatusBar.setStyle({ style: Style.Dark })
   await StatusBar.setBackgroundColor({ color: "#0a0a1a" })
+  
+  // On Android, make status bar overlay content and add padding via CSS variable
+  if (Capacitor.getPlatform() === "android") {
+    await StatusBar.setOverlaysWebView({ overlay: false })
+    // Set CSS variable for status bar height
+    document.documentElement.style.setProperty("--status-bar-height", "24px")
+  }
 
   // Handle back button on Android
   const { App } = await import("@capacitor/app")
