@@ -106,15 +106,17 @@ export function Scoreboard({ state }: ScoreboardProps) {
 /* Separate "This Over" component to be used full-width */
 export function ThisOver({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
-  const recentEvents = batting.ballEvents.slice(-6)
+  // Get only balls from the current over (resets when a new over starts)
+  const currentOver = batting.overs
+  const currentOverEvents = batting.ballEvents.filter((e) => e.over === currentOver)
 
-  if (recentEvents.length === 0) return null
+  if (currentOverEvents.length === 0) return null
 
   return (
     <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-card/60 px-3 py-2">
-      <span className="font-sans text-xs text-muted-foreground">This over:</span>
+      <span className="font-sans text-xs text-muted-foreground">Over {currentOver + 1}:</span>
       <div className="flex flex-wrap items-center gap-1.5">
-        {recentEvents.map((e, i) => (
+        {currentOverEvents.map((e, i) => (
           <span
             key={i}
             className="inline-flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-medium"
