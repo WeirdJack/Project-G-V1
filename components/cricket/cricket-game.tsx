@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { useCricketGame } from "@/hooks/use-cricket-game"
 import { useGameSounds } from "@/hooks/use-game-sounds"
-import { startBackgroundMusic, stopBackgroundMusic } from "@/lib/cricket-game/sound-engine"
+import { startBackgroundMusic, stopBackgroundMusic, unlockAudio } from "@/lib/cricket-game/sound-engine"
 import { Volume2, VolumeX } from "lucide-react"
 import { SplashScreen } from "./splash-screen"
 import { MatchSetup } from "./match-setup"
@@ -33,6 +33,8 @@ export function CricketGame() {
   }, [showSplash, state.phase, soundEnabled])
 
   const handleSplashComplete = useCallback(() => {
+    // Unlock audio on first user interaction (required for iOS/Android)
+    unlockAudio()
     setShowSplash(false)
   }, [])
 
@@ -63,7 +65,7 @@ export function CricketGame() {
 
   // Batting phase - main game UI
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background" onClick={unlockAudio}>
       {/* Top bar */}
       <header className="flex items-center justify-between border-b border-border/30 px-4 py-2">
         <h1 className="font-sans text-sm font-semibold text-foreground">
