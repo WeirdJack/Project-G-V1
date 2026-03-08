@@ -40,6 +40,7 @@ function createTeam(
     overs: 0,
     balls: 0,
     currentBatsmanIndex: 0,
+    nonStrikerIndex: playersPerTeam > 1 ? 1 : 0,
     extras: { wides: 0, noBalls: 0 },
     ballEvents: [],
   }
@@ -101,11 +102,12 @@ export function applySquareEffect(state: GameState): GameState {
     // Move to next batsman (max wickets = players - 1)
     const maxWickets = state.config.playersPerTeam - 1
     if (battingTeam.wickets < maxWickets) {
-      battingTeam.currentBatsmanIndex = battingTeam.players.findIndex(
-        (p, i) => i > battingTeam.currentBatsmanIndex && !p.isOut
+      // Find next available batsman who is not out and not the non-striker
+      const nextBatsmanIndex = battingTeam.players.findIndex(
+        (p, i) => !p.isOut && i !== battingTeam.nonStrikerIndex
       )
-      if (battingTeam.currentBatsmanIndex === -1) {
-        battingTeam.currentBatsmanIndex = battingTeam.players.findIndex((p) => !p.isOut)
+      if (nextBatsmanIndex !== -1) {
+        battingTeam.currentBatsmanIndex = nextBatsmanIndex
       }
     }
   } else if (square.type === "wide") {
@@ -123,6 +125,13 @@ export function applySquareEffect(state: GameState): GameState {
     currentBatsman.ballsFaced += 1
     battingTeam.players = [...battingTeam.players]
     battingTeam.players[battingTeam.currentBatsmanIndex] = currentBatsman
+
+    // Swap batsmen on odd runs (1, 3)
+    if (square.runs % 2 === 1) {
+      const temp = battingTeam.currentBatsmanIndex
+      battingTeam.currentBatsmanIndex = battingTeam.nonStrikerIndex
+      battingTeam.nonStrikerIndex = temp
+    }
   }
 
   // Update overs for legal deliveries
@@ -131,6 +140,10 @@ export function applySquareEffect(state: GameState): GameState {
     if (battingTeam.balls >= BALLS_PER_OVER) {
       battingTeam.balls = 0
       battingTeam.overs += 1
+      // Swap batsmen at end of over
+      const temp = battingTeam.currentBatsmanIndex
+      battingTeam.currentBatsmanIndex = battingTeam.nonStrikerIndex
+      battingTeam.nonStrikerIndex = temp
     }
   }
 

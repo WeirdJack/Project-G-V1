@@ -13,6 +13,8 @@ type SquareSound =
   | "no-ball"
   | "wicket"
   | "dice-roll"
+  | "stumps-hit"
+  | "coin-toss"
 
 let audioCtx: AudioContext | null = null
 let audioUnlocked = false
@@ -173,6 +175,41 @@ function playDiceRoll() {
   }
 }
 
+function playStumpsHit() {
+  // Ball hitting stumps - dramatic impact with wooden clatter
+  // Initial ball impact
+  playNoise(0.08, 0.25)
+  playTone(1200, 0.08, "square", 0.15)
+  // Stumps breaking/flying
+  playTone(800, 0.1, "triangle", 0.12, 0.05)
+  playTone(600, 0.12, "triangle", 0.1, 0.1)
+  playTone(400, 0.15, "triangle", 0.08, 0.15)
+  // Wooden clatter of bails falling
+  for (let i = 0; i < 4; i++) {
+    const freq = 1500 + Math.random() * 800
+    playTone(freq, 0.06, "triangle", 0.06, 0.2 + i * 0.08)
+  }
+  // Reverb tail
+  playTone(200, 0.4, "sine", 0.04, 0.4)
+}
+
+function playCoinToss() {
+  // Coin flip sound - metallic spinning and landing
+  // Initial flick
+  playTone(2500, 0.05, "square", 0.08)
+  // Spinning whooshes
+  for (let i = 0; i < 6; i++) {
+    const freq = 1800 - i * 150
+    playTone(freq, 0.06, "sine", 0.05 + i * 0.01, 0.08 + i * 0.1)
+  }
+  // Landing clinks
+  playTone(3000, 0.04, "triangle", 0.1, 0.7)
+  playTone(2800, 0.03, "triangle", 0.08, 0.78)
+  playTone(2600, 0.05, "triangle", 0.06, 0.84)
+  // Final settle
+  playTone(2200, 0.08, "sine", 0.04, 0.92)
+}
+
 /* ─── Public API ─── */
 
 export function playSound(type: SquareSound) {
@@ -204,6 +241,12 @@ export function playSound(type: SquareSound) {
         break
       case "dice-roll":
         playDiceRoll()
+        break
+      case "stumps-hit":
+        playStumpsHit()
+        break
+      case "coin-toss":
+        playCoinToss()
         break
     }
   } catch {

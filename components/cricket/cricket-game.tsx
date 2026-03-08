@@ -10,7 +10,7 @@ import { MatchSetup } from "./match-setup"
 import { TossOverlay } from "./toss-overlay"
 import { GameBoard } from "./game-board"
 import { Dice } from "./dice"
-import { Scoreboard } from "./scoreboard"
+import { Scoreboard, ThisOver } from "./scoreboard"
 import { CommentaryFeed } from "./commentary-feed"
 import { Umpire } from "./umpire"
 import { InningsSummary } from "./innings-summary"
@@ -92,23 +92,28 @@ export function CricketGame() {
       {/* Main game area */}
       <div className="flex flex-1 flex-col items-center gap-2 p-2">
         {/* Umpire + Commentary side by side - always horizontal */}
-        <div className="flex w-full items-start justify-center gap-3">
+        <div className="flex w-full items-stretch justify-center gap-3 max-w-md mx-auto">
           <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
           </div>
-          <div className="min-w-0 flex-1 max-w-[200px]">
+          <div className="min-w-0 flex-1">
             <CommentaryFeed state={state} />
           </div>
         </div>
 
-        {/* Dice + Scoreboard side by side - always horizontal */}
-        <div className="flex w-full items-start justify-center gap-3">
+        {/* Dice + Scoreboard side by side - aligned with above row */}
+        <div className="flex w-full items-stretch justify-center gap-3 max-w-md mx-auto">
           <div className="flex shrink-0 flex-col items-center">
             <Dice state={state} onRoll={rollDice} />
           </div>
-          <div className="min-w-0 flex-1 max-w-[200px]">
+          <div className="min-w-0 flex-1">
             <Scoreboard state={state} />
           </div>
+        </div>
+
+        {/* This Over - full width spanning both columns */}
+        <div className="w-full max-w-md mx-auto">
+          <ThisOver state={state} />
         </div>
 
         {/* Board below */}

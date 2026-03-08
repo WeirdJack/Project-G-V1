@@ -288,8 +288,8 @@ export function Umpire({ state }: UmpireProps) {
         }}
       >
         <svg
-          width="140"
-          height="200"
+          width="105"
+          height="150"
           viewBox="-10 0 180 240"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
