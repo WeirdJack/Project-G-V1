@@ -309,23 +309,13 @@ const speechQueue: string[] = []
 let voicesLoaded = false
 let speechSupported: boolean | null = null
 
-// Check if speech synthesis is actually supported and working
+// Check if speech synthesis is supported
 function checkSpeechSupport(): boolean {
   if (speechSupported !== null) return speechSupported
   if (typeof window === "undefined" || !window.speechSynthesis) {
     speechSupported = false
     return false
   }
-  // Android WebView may have speechSynthesis but it doesn't always work
-  const isAndroid = /android/i.test(navigator.userAgent)
-  const isCapacitor = typeof (window as unknown as {Capacitor?: unknown}).Capacitor !== "undefined"
-  
-  // On Android Capacitor, speech synthesis is unreliable - disable it
-  if (isAndroid && isCapacitor) {
-    speechSupported = false
-    return false
-  }
-  
   speechSupported = true
   return true
 }
@@ -388,18 +378,27 @@ function processQueue() {
 
   utterance.onend = () => {
     isSpeaking = false
-    setTimeout(processQueue, 100)
+    setTimeout(processQueue, 150)
   }
   utterance.onerror = () => {
     isSpeaking = false
-    setTimeout(processQueue, 100)
+    setTimeout(processQueue, 150)
   }
 
-  // Cancel any existing speech and speak
-  window.speechSynthesis.cancel()
+  // Android Chrome fix: cancel, pause briefly, then speak
+  const synth = window.speechSynthesis
+  synth.cancel()
+  
+  // Android requires a longer delay after cancel
+  const isAndroid = /android/i.test(navigator.userAgent)
+  const delay = isAndroid ? 100 : 20
+  
   setTimeout(() => {
-    window.speechSynthesis.speak(utterance)
-  }, 20)
+    // Double-check we're not already speaking
+    if (!synth.speaking) {
+      synth.speak(utterance)
+    }
+  }, delay)
 }
 
 export function speakCommentary(text: string) {
