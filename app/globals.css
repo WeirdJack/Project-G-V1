@@ -111,8 +111,12 @@
     padding-right: env(safe-area-inset-right, 0px);
   }
   
-  /* Android native app - extra top padding for status bar */
-  .android-native body {
-    padding-top: var(--status-bar-height, 24px);
-  }
+}
+
+/* Android native app - ensure content doesn't overlap status bar */
+html.android-native {
+  padding-top: 28px;
+}
+html.android-native body {
+  padding-top: 0;
 }
