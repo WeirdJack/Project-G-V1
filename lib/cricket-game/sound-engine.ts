@@ -385,18 +385,21 @@ function processQueue() {
     setTimeout(processQueue, 150)
   }
 
-  // Android Chrome fix: cancel, pause briefly, then speak
+  // Android Chrome/WebView fix: cancel and wait before speaking
   const synth = window.speechSynthesis
   synth.cancel()
   
   // Android requires a longer delay after cancel
   const isAndroid = /android/i.test(navigator.userAgent)
-  const delay = isAndroid ? 100 : 20
+  const delay = isAndroid ? 150 : 20
   
   setTimeout(() => {
-    // Double-check we're not already speaking
-    if (!synth.speaking) {
+    // On Android, don't check synth.speaking as it's unreliable
+    try {
       synth.speak(utterance)
+    } catch {
+      isSpeaking = false
+      setTimeout(processQueue, 100)
     }
   }, delay)
 }
