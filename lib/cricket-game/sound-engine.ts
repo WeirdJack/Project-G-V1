@@ -306,107 +306,41 @@ export function playSound(type: SquareSound) {
 
 let isSpeaking = false
 const speechQueue: string[] = []
-let voicesLoaded = false
-let speechSupported: boolean | null = null
-
-// Check if speech synthesis is supported
-function checkSpeechSupport(): boolean {
-  if (speechSupported !== null) return speechSupported
-  if (typeof window === "undefined" || !window.speechSynthesis) {
-    speechSupported = false
-    return false
-  }
-  speechSupported = true
-  return true
-}
-
-// Preload voices on mobile (needed for Android)
-function loadVoices(): Promise<SpeechSynthesisVoice[]> {
-  return new Promise((resolve) => {
-    if (!checkSpeechSupport()) {
-      resolve([])
-      return
-    }
-    const voices = window.speechSynthesis.getVoices()
-    if (voices.length > 0) {
-      voicesLoaded = true
-      resolve(voices)
-      return
-    }
-    // Wait for voices to load
-    window.speechSynthesis.onvoiceschanged = () => {
-      voicesLoaded = true
-      resolve(window.speechSynthesis.getVoices())
-    }
-    // Timeout fallback
-    setTimeout(() => {
-      const v = window.speechSynthesis?.getVoices() || []
-      voicesLoaded = v.length > 0
-      resolve(v)
-    }, 1000)
-  })
-}
-
-// Initialize voices early
-if (typeof window !== "undefined") {
-  loadVoices()
-}
 
 function processQueue() {
   if (isSpeaking || speechQueue.length === 0) return
-  if (!checkSpeechSupport()) {
-    speechQueue.length = 0
-    return
-  }
+  if (typeof window === "undefined" || !window.speechSynthesis) return
 
   const text = speechQueue.shift()!
   isSpeaking = true
 
   const utterance = new SpeechSynthesisUtterance(text)
-  utterance.rate = 1.0
+  utterance.rate = 1.1
   utterance.pitch = 1.0
-  utterance.volume = 1.0
+  utterance.volume = 0.8
 
-  // Try to pick an English voice - prefer local/offline voices
+  // Try to pick an English voice
   const voices = window.speechSynthesis.getVoices()
-  const localEnglish = voices.find(
-    (v) => v.lang.startsWith("en") && v.localService === true
-  )
-  const anyEnglish = voices.find((v) => v.lang.startsWith("en"))
-  const defaultVoice = voices[0]
-  utterance.voice = localEnglish || anyEnglish || defaultVoice || null
+  const english = voices.find(
+    (v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("male")
+  ) || voices.find((v) => v.lang.startsWith("en"))
+  if (english) utterance.voice = english
 
   utterance.onend = () => {
     isSpeaking = false
-    setTimeout(processQueue, 150)
+    processQueue()
   }
   utterance.onerror = () => {
     isSpeaking = false
-    setTimeout(processQueue, 150)
+    processQueue()
   }
 
-  // Android Chrome/WebView fix: cancel and wait before speaking
-  const synth = window.speechSynthesis
-  synth.cancel()
-  
-  // Android requires a longer delay after cancel
-  const isAndroid = /android/i.test(navigator.userAgent)
-  const delay = isAndroid ? 150 : 20
-  
-  setTimeout(() => {
-    // On Android, don't check synth.speaking as it's unreliable
-    try {
-      synth.speak(utterance)
-    } catch {
-      isSpeaking = false
-      setTimeout(processQueue, 100)
-    }
-  }, delay)
+  window.speechSynthesis.speak(utterance)
 }
 
 export function speakCommentary(text: string) {
   try {
-    if (!checkSpeechSupport()) return
+    if (typeof window === "undefined" || !window.speechSynthesis) return
     // Cancel any pending speech if queue is long
     if (speechQueue.length > 2) {
       window.speechSynthesis.cancel()
@@ -414,12 +348,7 @@ export function speakCommentary(text: string) {
       speechQueue.length = 0
     }
     speechQueue.push(text)
-    // Ensure voices are loaded before speaking
-    if (!voicesLoaded) {
-      loadVoices().then(() => processQueue())
-    } else {
-      processQueue()
-    }
+    processQueue()
   } catch {
     // Silently fail
   }
