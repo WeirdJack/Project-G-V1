@@ -124,15 +124,17 @@ export function GameBoard({ state, children }: GameBoardProps) {
       }
 
       if (tokenPos) {
-        // Token outer glow - consistent, no pulsing
+        // Token glow ring - fades in and out, no filled dot
+        const glowPulse = 0.5 + 0.5 * Math.sin(time * 2.5)
         ctx.save()
-        ctx.globalAlpha = 0.55
+        ctx.globalAlpha = 0.4 + glowPulse * 0.4
+        ctx.strokeStyle = tokenColor
+        ctx.lineWidth = 3
         ctx.shadowColor = tokenColor
-        ctx.shadowBlur = 12
+        ctx.shadowBlur = 10 + glowPulse * 8
         ctx.beginPath()
-        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.4, 0, Math.PI * 2)
-        ctx.fillStyle = tokenColor
-        ctx.fill()
+        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.6, 0, Math.PI * 2)
+        ctx.stroke()
         ctx.restore()
       }
 
