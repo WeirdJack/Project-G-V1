@@ -15,7 +15,10 @@ export function ScoreboardTeam({ state }: ScoreboardProps) {
   const oversStr = getOverString(batting.overs, batting.balls)
 
   return (
-    <div className="absolute top-1 left-1 pointer-events-auto flex flex-col items-start rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm">
+    <div 
+      className="absolute top-0 left-0 pointer-events-auto flex flex-col items-start rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border"
+      style={{ borderColor: battingColor }}
+    >
       <div className="flex items-center gap-1">
         <span
           className="h-2 w-2 rounded-full"
@@ -48,7 +51,7 @@ export function ScoreboardTarget({ state }: ScoreboardProps) {
   // Only show in 2nd innings when chasing
   if (state.currentInnings !== 2 || state.target === null) {
     return (
-      <div className="absolute top-1 right-1 pointer-events-auto flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm">
+      <div className="absolute top-0 right-0 pointer-events-auto flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border border-cyan-500/60">
         <span className="font-sans text-[9px] text-muted-foreground">Innings</span>
         <span className="font-mono text-sm font-bold text-foreground">{state.currentInnings}</span>
       </div>
@@ -61,9 +64,9 @@ export function ScoreboardTarget({ state }: ScoreboardProps) {
     : (state.config.overs as number) * 6 - (batting.overs * 6 + batting.balls)
 
   return (
-    <div className="absolute top-1 right-1 pointer-events-auto flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm">
+    <div className="absolute top-0 right-0 pointer-events-auto flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border border-amber-500/70">
       <span className="font-sans text-[9px] text-muted-foreground">Target</span>
-      <span className="font-mono text-sm font-bold text-accent leading-tight">
+      <span className="font-mono text-sm font-bold text-amber-400 leading-tight">
         {remaining > 0 ? `Need ${remaining}` : "Won!"}
       </span>
       {ballsLeft !== null && remaining > 0 && (
@@ -83,7 +86,10 @@ export function ScoreboardBatter({ state }: ScoreboardProps) {
   const nonStriker = batting.players[batting.nonStrikerIndex]
 
   return (
-    <div className="absolute bottom-1 left-1 pointer-events-auto flex flex-col items-start rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm">
+    <div 
+      className="absolute bottom-0 left-0 pointer-events-auto flex flex-col items-start rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border"
+      style={{ borderColor: battingColor }}
+    >
       {/* Striker */}
       {striker && !striker.isOut && (
         <div className="flex items-center gap-1.5">
@@ -123,7 +129,10 @@ export function ScoreboardBowler({ state }: ScoreboardProps) {
   // In a full implementation, this would show current bowler stats
 
   return (
-    <div className="absolute bottom-1 right-1 pointer-events-auto flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm">
+    <div 
+      className="absolute bottom-0 right-0 pointer-events-auto flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border"
+      style={{ borderColor: bowlingColor }}
+    >
       <span className="font-sans text-[9px] text-muted-foreground">Bowling</span>
       <span 
         className="font-sans text-[10px] font-bold"
