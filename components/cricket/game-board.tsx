@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useCallback } from "react"
+import { useRef, useEffect, useCallback, type ReactNode } from "react"
 import type { GameState } from "@/lib/cricket-game/types"
 import {
   BOARD_SQUARES,
@@ -12,6 +12,38 @@ import {
 
 interface GameBoardProps {
   state: GameState
+  children?: ReactNode
+}
+
+// Signal labels and colors for all square types
+function getSignalLabel(type: string): string {
+  switch (type) {
+    case "wicket": return "OUT!"
+    case "six": return "SIX!"
+    case "boundary": return "FOUR!"
+    case "wide": return "WIDE"
+    case "no-ball": return "NO BALL"
+    case "single": return "1"
+    case "double": return "2"
+    case "triple": return "3"
+    case "dot": return "DOT"
+    default: return ""
+  }
+}
+
+function getSignalColor(type: string): string {
+  switch (type) {
+    case "wicket": return "#ff4444"
+    case "six": return "#ffcc00"
+    case "boundary": return "#ffaa00"
+    case "wide": return "#cc99ff"
+    case "no-ball": return "#bb88ee"
+    case "single":
+    case "double":
+    case "triple": return "#8ffff0"
+    case "dot": return "#888888"
+    default: return "#8ffff0"
+  }
 }
 
 function getSquarePositions(
@@ -34,7 +66,7 @@ function getSquarePositions(
   return positions
 }
 
-export function GameBoard({ state }: GameBoardProps) {
+export function GameBoard({ state, children }: GameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animFrameRef = useRef<number>(0)
   const timeRef = useRef(0)
@@ -123,34 +155,30 @@ export function GameBoard({ state }: GameBoardProps) {
       }
 
       if (tokenPos) {
-        // Token glow
-        const glowPulse = 0.6 + 0.4 * Math.sin(time * 3)
+        // Token glow ring - fades in and out, no filled dot
+        const glowPulse = 0.5 + 0.5 * Math.sin(time * 2.5)
         ctx.save()
+        ctx.globalAlpha = 0.4 + glowPulse * 0.4
+        ctx.strokeStyle = tokenColor
+        ctx.lineWidth = 3
         ctx.shadowColor = tokenColor
-        ctx.shadowBlur = 12 + glowPulse * 8
+        ctx.shadowBlur = 10 + glowPulse * 8
         ctx.beginPath()
-        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.55, 0, Math.PI * 2)
-        ctx.fillStyle = tokenColor
-        ctx.fill()
+        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.6, 0, Math.PI * 2)
+        ctx.stroke()
         ctx.restore()
-
-        // Token inner
-        ctx.beginPath()
-        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.35, 0, Math.PI * 2)
-        ctx.fillStyle = "#0a0a1a"
-        ctx.fill()
       }
 
       // Center area - cricket pitch graphic
-      const pitchW = minDim * 0.12
-      const pitchH = minDim * 0.22
+      const pitchW = minDim * 0.10
+      const pitchH = minDim * 0.20
       ctx.save()
       ctx.fillStyle = "#1a2a1a"
       ctx.strokeStyle = "#2a4a2a"
       ctx.lineWidth = 1
 
       // Pitch rectangle
-      const pitchRoundedRadius = 6
+      const pitchRoundedRadius = 4
       ctx.beginPath()
       ctx.roundRect(cx - pitchW / 2, cy - pitchH / 2, pitchW, pitchH, pitchRoundedRadius)
       ctx.fill()
@@ -172,23 +200,10 @@ export function GameBoard({ state }: GameBoardProps) {
       ctx.fillStyle = "#8a7a5a"
       for (const creaseY of [creaseY1, creaseY2]) {
         for (let s = -1; s <= 1; s++) {
-          ctx.fillRect(cx + s * 3 - 0.5, creaseY - 4, 1.5, 8)
+          ctx.fillRect(cx + s * 2 - 0.5, creaseY - 3, 1, 6)
         }
       }
       ctx.restore()
-
-      // Center text: innings info
-      ctx.fillStyle = "#6a8a9a"
-      ctx.font = `${minDim * 0.022}px 'Geist', sans-serif`
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      const battingTeamName = state[state.battingTeamKey].name
-      ctx.fillText(battingTeamName, cx, cy + pitchH / 2 + minDim * 0.05)
-      ctx.fillText(
-        `Innings ${state.currentInnings}`,
-        cx,
-        cy - pitchH / 2 - minDim * 0.05
-      )
     },
     [state, tokenColor]
   )
@@ -219,12 +234,15 @@ export function GameBoard({ state }: GameBoardProps) {
   }, [draw])
 
   return (
-    <div className="relative aspect-square w-full max-w-[500px]">
+    <div className="relative aspect-square w-full max-w-[320px]">
       <canvas
         ref={canvasRef}
         className="h-full w-full"
         style={{ display: "block" }}
       />
+      
+      {/* Corner score components - outside circular area but inside game board */}
+      {children}
 
       {/* Flash effects */}
       {state.flashEffect && (
@@ -242,32 +260,20 @@ export function GameBoard({ state }: GameBoardProps) {
         />
       )}
 
-      {/* Flash text */}
-      {state.flashEffect && (
+      {/* Signal text above pitch - shows for all events */}
+      {state.lastSquareLanded && (
         <div
           className="pointer-events-none absolute inset-0 flex items-center justify-center"
           style={{ animation: "flash-text 1.2s ease-out forwards" }}
         >
           <span
-            className="font-mono text-4xl font-black tracking-widest sm:text-5xl"
+            className="font-mono text-3xl font-black tracking-widest sm:text-4xl"
             style={{
-              color:
-                state.flashEffect === "wicket"
-                  ? "#ff4444"
-                  : state.flashEffect === "six"
-                    ? "#ffcc00"
-                    : "#ffaa00",
-              textShadow:
-                state.flashEffect === "wicket"
-                  ? "0 0 30px #ff444488"
-                  : "0 0 30px #ffcc0088",
+              color: getSignalColor(state.lastSquareLanded.type),
+              textShadow: `0 0 30px ${getSignalColor(state.lastSquareLanded.type)}88`,
             }}
           >
-            {state.flashEffect === "wicket"
-              ? "OUT!"
-              : state.flashEffect === "six"
-                ? "SIX!"
-                : "FOUR!"}
+            {getSignalLabel(state.lastSquareLanded.type)}
           </span>
         </div>
       )}

@@ -10,9 +10,10 @@ type UmpireSignal =
   | "six"
   | "wide"
   | "no-ball"
-  | "single"
-  | "double"
-  | "triple"
+  | "byes"
+  | "leg-byes"
+  | "runs"
+  | "dot"
 
 const SIGNAL_LABELS: Record<UmpireSignal, { label: string; color: string; glow: string }> = {
   idle:       { label: "",         color: "#8ffff0", glow: "transparent"  },
@@ -21,9 +22,10 @@ const SIGNAL_LABELS: Record<UmpireSignal, { label: string; color: string; glow: 
   six:        { label: "SIX!",     color: "#ffdd33", glow: "#ffdd3355"    },
   wide:       { label: "WIDE",     color: "#cc99ff", glow: "#cc99ff55"    },
   "no-ball":  { label: "NO BALL",  color: "#bb88ee", glow: "#bb88ee55"    },
-  single:     { label: "1 RUN",    color: "#8ffff0", glow: "#8ffff055"    },
-  double:     { label: "2 RUNS",   color: "#8ffff0", glow: "#8ffff055"    },
-  triple:     { label: "3 RUNS",   color: "#8ffff0", glow: "#8ffff055"    },
+  byes:       { label: "BYES",     color: "#88ccff", glow: "#88ccff55"    },
+  "leg-byes": { label: "LEG BYES", color: "#88ccff", glow: "#88ccff55"    },
+  runs:       { label: "RUNS",     color: "#8ffff0", glow: "#8ffff055"    },
+  dot:        { label: "DOT",      color: "#888888", glow: "#88888844"    },
 }
 
 function squareTypeToSignal(type: SquareType | null): UmpireSignal {
@@ -34,9 +36,10 @@ function squareTypeToSignal(type: SquareType | null): UmpireSignal {
     case "six":      return "six"
     case "wide":     return "wide"
     case "no-ball":  return "no-ball"
-    case "single":   return "single"
-    case "double":   return "double"
-    case "triple":   return "triple"
+    case "single":
+    case "double":
+    case "triple":   return "runs"
+    case "dot":      return "dot"
     default:         return "idle"
   }
 }
@@ -90,23 +93,22 @@ function ArmsOut() {
   )
 }
 
-/* ── FOUR: right arm waving side to side (horizontal) ── */
+/* ── FOUR: right arm waving back and forth in front of chest (official ICC) ── */
 function ArmsBoundary() {
   return (
     <>
-      {/* Left arm relaxed */}
+      {/* Left arm relaxed at side */}
       <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <circle cx="38" cy="150" r="5" fill="#d4a574" />
       <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm out horizontal, forearm waving */}
-      <path d="M112,82 L140,78 L155,72" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="155" cy="72" r="5" fill="#d4a574" />
-      {/* Open palm facing out */}
-      <line x1="152" y1="67" x2="149" y2="62" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="155" y1="67" x2="155" y2="61" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="158" y1="68" x2="160" y2="63" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="160" y1="71" x2="164" y2="68" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M112,78 Q120,76 132,76" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
+      {/* Right arm bent at elbow, forearm across chest waving */}
+      <path d="M112,82 L115,100 L70,95" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="70" cy="95" r="5" fill="#d4a574" />
+      {/* Open hand */}
+      <line x1="67" y1="90" x2="64" y2="86" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <line x1="70" y1="89" x2="70" y2="84" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <line x1="73" y1="90" x2="76" y2="86" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <path d="M112,78 Q114,88 115,98" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
     </>
   )
 }
@@ -157,75 +159,90 @@ function ArmsWide() {
   )
 }
 
-/* ── NO BALL: right arm out horizontal, left arm touching elbow ── */
+/* ── NO BALL: right arm extended horizontally to the side (official ICC) ── */
 function ArmsNoBall() {
   return (
     <>
-      {/* Right arm out horizontal */}
-      <path d="M112,82 L140,78 L155,74" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="155" cy="74" r="5" fill="#d4a574" />
-      {/* Open palm */}
-      <line x1="155" y1="69" x2="155" y2="63" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="158" y1="70" x2="160" y2="65" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M112,78 Q122,76 136,76" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Left arm bent, touching right elbow area */}
-      <path d="M48,82 L55,95 L80,82" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="80" cy="82" r="5" fill="#d4a574" />
-      <path d="M48,78 Q50,85 55,92" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
+      {/* Left arm relaxed at side */}
+      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="38" cy="150" r="5" fill="#d4a574" />
+      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
+      {/* Right arm extended straight out horizontally */}
+      <path d="M112,82 L145,80 L168,80" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="168" cy="80" r="5" fill="#d4a574" />
+      {/* Open palm facing forward */}
+      <line x1="168" y1="75" x2="168" y2="69" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <line x1="171" y1="76" x2="174" y2="72" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <line x1="165" y1="76" x2="162" y2="72" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <path d="M112,78 Q130,78 145,78" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
     </>
   )
 }
 
-/* ── SINGLE: right arm slightly angled, wrist flick with 1 finger ── */
-function ArmsSingle() {
+/* ── BYES: one open hand raised above head (official ICC) ── */
+function ArmsByes() {
   return (
     <>
       {/* Left arm relaxed */}
       <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <circle cx="38" cy="150" r="5" fill="#d4a574" />
       <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm slightly out, forearm angled, 1 finger point */}
-      <path d="M112,82 L125,95 L138,88" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="138" cy="88" r="5" fill="#d4a574" />
-      <line x1="140" y1="85" x2="145" y2="80" stroke="#d4a574" strokeWidth="3" strokeLinecap="round" />
-      <path d="M112,78 Q118,82 124,90" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
+      {/* Right arm raised with open palm */}
+      <path d="M112,82 L118,55 L122,28" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="122" cy="26" r="5" fill="#d4a574" />
+      {/* Open palm fingers spread */}
+      <line x1="119" y1="22" x2="116" y2="14" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <line x1="122" y1="20" x2="122" y2="12" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <line x1="125" y1="22" x2="128" y2="14" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <line x1="127" y1="25" x2="132" y2="20" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
+      <path d="M112,78 Q116,72 118,58" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
     </>
   )
 }
 
-/* ── DOUBLE: right arm out, wrist flick, 2 fingers ── */
-function ArmsDouble() {
+/* ── LEG BYES: touch raised knee with hand (official ICC) ── */
+function ArmsLegByes() {
   return (
     <>
       {/* Left arm relaxed */}
       <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <circle cx="38" cy="150" r="5" fill="#d4a574" />
       <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm more elevated, 2 fingers */}
-      <path d="M112,82 L130,75 L146,68" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="146" cy="68" r="5" fill="#d4a574" />
-      <line x1="144" y1="63" x2="142" y2="56" stroke="#d4a574" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1="148" y1="63" x2="150" y2="56" stroke="#d4a574" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M112,78 Q120,76 128,74" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
+      {/* Right arm bent down touching knee area */}
+      <path d="M112,82 L115,110 L95,145" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="95" cy="147" r="5" fill="#d4a574" />
+      <path d="M112,78 Q114,90 115,105" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
     </>
   )
 }
 
-/* ── TRIPLE: right arm higher, 3 fingers ── */
-function ArmsTriple() {
+/* ── RUNS: both arms relaxed, small acknowledging gesture ── */
+function ArmsRuns() {
   return (
     <>
       {/* Left arm relaxed */}
       <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <circle cx="38" cy="150" r="5" fill="#d4a574" />
       <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm higher, 3 fingers */}
-      <path d="M112,82 L132,65 L148,50" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="148" cy="50" r="5" fill="#d4a574" />
-      <line x1="144" y1="45" x2="141" y2="38" stroke="#d4a574" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1="148" y1="44" x2="148" y2="36" stroke="#d4a574" strokeWidth="2.5" strokeLinecap="round" />
-      <line x1="152" y1="46" x2="155" y2="39" stroke="#d4a574" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M112,78 Q120,72 130,66" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
+      {/* Right arm slightly raised in acknowledgment */}
+      <path d="M112,82 L125,90 L140,85" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="140" cy="85" r="5" fill="#d4a574" />
+      <path d="M112,78 Q118,82 124,86" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
+    </>
+  )
+}
+
+/* ── DOT BALL: both arms at sides, no signal needed ── */
+function ArmsDot() {
+  return (
+    <>
+      {/* Both arms relaxed - same as idle */}
+      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="38" cy="150" r="5" fill="#d4a574" />
+      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
+      <path d="M112,82 L120,115 L122,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="122" cy="150" r="5" fill="#d4a574" />
+      <path d="M112,78 Q118,82 120,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
     </>
   )
 }
@@ -237,24 +254,22 @@ const ARM_COMPONENTS: Record<UmpireSignal, React.FC> = {
   six: ArmsSix,
   wide: ArmsWide,
   "no-ball": ArmsNoBall,
-  single: ArmsSingle,
-  double: ArmsDouble,
-  triple: ArmsTriple,
+  byes: ArmsByes,
+  "leg-byes": ArmsLegByes,
+  runs: ArmsRuns,
+  dot: ArmsDot,
 }
 
 export function Umpire({ state }: UmpireProps) {
   const [signal, setSignal] = useState<UmpireSignal>("idle")
-  const [showLabel, setShowLabel] = useState(false)
 
   useEffect(() => {
     if (state.lastSquareLanded) {
       const s = squareTypeToSignal(state.lastSquareLanded.type)
       setSignal(s)
-      setShowLabel(true)
     } else {
       const t = setTimeout(() => {
         setSignal("idle")
-        setShowLabel(false)
       }, 300)
       return () => clearTimeout(t)
     }
@@ -266,19 +281,6 @@ export function Umpire({ state }: UmpireProps) {
 
   return (
     <div className="flex flex-col items-center gap-1">
-      {/* Signal label */}
-      <div
-        className="flex h-7 items-center justify-center font-mono text-sm font-bold tracking-widest transition-all duration-300"
-        style={{
-          color: cfg.color,
-          opacity: showLabel && cfg.label ? 1 : 0,
-          transform: showLabel && cfg.label ? "translateY(0)" : "translateY(6px)",
-          textShadow: showLabel ? `0 0 14px ${cfg.glow}, 0 0 28px ${cfg.glow}` : "none",
-        }}
-      >
-        {cfg.label}
-      </div>
-
       {/* Umpire figure */}
       <div
         className="relative"
@@ -288,8 +290,8 @@ export function Umpire({ state }: UmpireProps) {
         }}
       >
         <svg
-          width="105"
-          height="150"
+          width="78"
+          height="112"
           viewBox="-10 0 180 240"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"

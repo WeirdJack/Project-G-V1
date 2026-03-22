@@ -8,112 +8,111 @@ interface ScoreboardProps {
   state: GameState
 }
 
-export function Scoreboard({ state }: ScoreboardProps) {
+/* Top-Left: Team Score */
+export function ScoreboardTeam({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
-  const bowling = state[state.bowlingTeamKey]
+  const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
+  const oversStr = getOverString(batting.overs, batting.balls)
+
+  return (
+    <div 
+      className="absolute -top-1 -left-1 pointer-events-auto flex flex-col items-start rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
+      style={{ borderColor: battingColor }}
+    >
+      <div className="flex items-center gap-1">
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: battingColor }}
+        />
+        <span 
+          className="font-sans text-[11px] font-bold"
+          style={{ color: battingColor }}
+        >
+          {batting.name}
+        </span>
+      </div>
+      <div className="flex items-baseline gap-1">
+        <span className="font-mono text-lg font-bold text-foreground leading-tight">
+          {batting.totalRuns}/{batting.wickets}
+        </span>
+        <span className="font-mono text-[9px] text-muted-foreground">
+          ({oversStr})
+        </span>
+      </div>
+    </div>
+  )
+}
+
+/* Top-Right: Target (only in 2nd innings) */
+export function ScoreboardTarget({ state }: ScoreboardProps) {
+  const batting = state[state.battingTeamKey]
+  const isTest = state.config.overs === "test"
+  
+  // Only show in 2nd innings when chasing
+  if (state.currentInnings !== 2 || state.target === null) {
+    return (
+      <div className="absolute -top-1 -right-1 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border border-cyan-500/60">
+        <span className="font-sans text-[9px] text-muted-foreground">Innings</span>
+        <span className="font-mono text-sm font-bold text-foreground">{state.currentInnings}</span>
+      </div>
+    )
+  }
+
+  const remaining = state.target - batting.totalRuns + 1
+  const ballsLeft = isTest
+    ? null
+    : (state.config.overs as number) * 6 - (batting.overs * 6 + batting.balls)
+
+  return (
+    <div className="absolute -top-1 -right-1 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border border-amber-500/70">
+      <span className="font-sans text-[9px] text-muted-foreground">Target</span>
+      <span className="font-mono text-sm font-bold text-amber-400 leading-tight">
+        {remaining > 0 ? `Need ${remaining}` : "Won!"}
+      </span>
+      {ballsLeft !== null && remaining > 0 && (
+        <span className="font-mono text-[8px] text-muted-foreground">
+          from {ballsLeft} balls
+        </span>
+      )}
+    </div>
+  )
+}
+
+/* Bottom-Left: Batter Info */
+export function ScoreboardBatter({ state }: ScoreboardProps) {
+  const batting = state[state.battingTeamKey]
   const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
   const striker = batting.players[batting.currentBatsmanIndex]
   const nonStriker = batting.players[batting.nonStrikerIndex]
-  const oversStr = getOverString(batting.overs, batting.balls)
-
-  // Target info for 2nd innings
-  const isTest = state.config.overs === "test"
-  const targetInfo =
-    state.currentInnings === 2 && state.target !== null
-      ? {
-          remaining: state.target - batting.totalRuns + 1,
-          totalBalls: isTest
-            ? null
-            : (state.config.overs as number) * 6 - (batting.overs * 6 + batting.balls),
-        }
-      : null
 
   return (
-    <div className="flex h-full w-full flex-col gap-2">
-      {/* Main score card with batter info inside */}
-      <div
-        className="flex flex-col gap-2 rounded-xl border border-border/50 bg-card/80 p-3"
-        style={{ borderLeftColor: battingColor, borderLeftWidth: 3 }}
-      >
-        {/* Team name and innings */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: battingColor }}
-            />
-            <span className="font-sans text-xs font-medium text-foreground">
-              {batting.name}
-            </span>
-          </div>
-          <span className="font-sans text-[10px] text-muted-foreground">
-            Inn. {state.currentInnings}
+    <div 
+      className="absolute -bottom-1 -left-1 pointer-events-auto flex flex-col items-start rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
+      style={{ borderColor: battingColor }}
+    >
+      {/* Striker */}
+      {striker && !striker.isOut && (
+        <div className="flex items-center gap-1.5">
+          <span 
+            className="font-sans text-[10px] font-bold truncate max-w-[45px]"
+            style={{ color: battingColor }}
+          >
+            {striker.name}*
+          </span>
+          <span className="font-mono text-sm font-bold leading-none" style={{ color: battingColor }}>
+            {striker.runs}
+            <span className="text-[8px] text-muted-foreground font-normal">({striker.ballsFaced})</span>
           </span>
         </div>
-
-        {/* Team score */}
-        <div className="flex items-baseline gap-1.5">
-          <span className="font-mono text-2xl font-bold text-foreground">
-            {batting.totalRuns}/{batting.wickets}
+      )}
+      {/* Non-striker */}
+      {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
+        <div className="flex items-center gap-1.5 opacity-60">
+          <span className="font-sans text-[8px] text-muted-foreground truncate max-w-[40px]">
+            {nonStriker.name}
           </span>
-          <span className="font-mono text-xs text-muted-foreground">
-            ({oversStr})
-          </span>
-        </div>
-
-        {/* Batsmen - striker and non-striker */}
-        <div className="flex flex-col gap-1 border-t border-border/30 pt-2">
-          {/* Striker */}
-          {striker && !striker.isOut && (
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-xs text-muted-foreground">
-                {striker.name}*
-              </span>
-              <span className="font-mono text-sm font-semibold" style={{ color: battingColor }}>
-                {striker.runs}
-                <span className="text-[10px] text-muted-foreground ml-0.5">
-                  ({striker.ballsFaced})
-                </span>
-              </span>
-            </div>
-          )}
-          {/* Non-striker */}
-          {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-[10px] text-muted-foreground/70">
-                {nonStriker.name}
-              </span>
-              <span className="font-mono text-xs text-muted-foreground">
-                {nonStriker.runs}
-                <span className="text-[10px] text-muted-foreground/70 ml-0.5">
-                  ({nonStriker.ballsFaced})
-                </span>
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Target chase info */}
-        {targetInfo && targetInfo.remaining > 0 && (
-          <p className="font-sans text-[10px] text-accent">
-            Need {targetInfo.remaining}
-            {targetInfo.totalBalls !== null
-              ? ` from ${targetInfo.totalBalls} balls`
-              : " more"}
-          </p>
-        )}
-      </div>
-
-      {/* Bowling team score (if 2nd innings) */}
-      {state.currentInnings === 2 && (
-        <div className="flex items-center justify-between rounded-lg bg-secondary/30 px-2 py-1.5">
-          <span className="font-sans text-[10px] text-muted-foreground">
-            {bowling.name}
-          </span>
-          <span className="font-mono text-xs text-muted-foreground">
-            {state[state.bowlingTeamKey === "team1" ? "team1" : "team2"].totalRuns}/{
-              state[state.bowlingTeamKey === "team1" ? "team1" : "team2"].wickets
-            }
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {nonStriker.runs}({nonStriker.ballsFaced})
           </span>
         </div>
       )}
@@ -121,10 +120,45 @@ export function Scoreboard({ state }: ScoreboardProps) {
   )
 }
 
+/* Bottom-Right: Bowler Info */
+export function ScoreboardBowler({ state }: ScoreboardProps) {
+  const bowling = state[state.bowlingTeamKey]
+  const bowlingColor = state.bowlingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
+  
+  // For now, show team name - we don't track individual bowlers yet
+  // In a full implementation, this would show current bowler stats
+
+  return (
+    <div 
+      className="absolute -bottom-1 -right-1 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
+      style={{ borderColor: bowlingColor }}
+    >
+      <span className="font-sans text-[9px] text-muted-foreground">Bowling</span>
+      <span 
+        className="font-sans text-[10px] font-bold"
+        style={{ color: bowlingColor }}
+      >
+        {bowling.name}
+      </span>
+    </div>
+  )
+}
+
+/* Combined scoreboard with all 4 corners */
+export function Scoreboard({ state }: ScoreboardProps) {
+  return (
+    <>
+      <ScoreboardTeam state={state} />
+      <ScoreboardTarget state={state} />
+      <ScoreboardBatter state={state} />
+      <ScoreboardBowler state={state} />
+    </>
+  )
+}
+
 /* Separate "This Over" component to be used full-width */
 export function ThisOver({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
-  // Get only balls from the current over (resets when a new over starts)
   const currentOver = batting.overs
   const currentOverEvents = batting.ballEvents.filter((e) => e.over === currentOver)
 

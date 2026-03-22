@@ -83,18 +83,14 @@ export function Dice({ state, onRoll }: DiceProps) {
           style={{
             width: 96,
             height: 96,
-            borderColor: dice.isRolling ? teamColor : canRoll ? teamColor : "#2a3a4a",
+            borderColor: teamColor,
             backgroundColor: "#0c1424",
             boxShadow: dice.isRolling
               ? `0 0 28px ${teamColor}66, 0 0 8px ${teamColor}33 inset`
-              : canRoll
-                ? `0 0 16px ${teamColor}44`
-                : `0 0 6px #0a0a1a`,
+              : `0 0 20px ${teamColor}55, 0 0 40px ${teamColor}22`,
             animation: dice.isRolling
               ? "dice-tumble 0.2s ease-in-out infinite"
-              : showIdle
-                ? "dice-breathe 2s ease-in-out infinite"
-                : "none",
+              : "dice-neon-glow 2s ease-in-out infinite",
             cursor: canRoll ? "pointer" : "default",
             transition: "box-shadow 0.3s ease, border-color 0.3s ease",
           }}
@@ -119,14 +115,14 @@ export function Dice({ state, onRoll }: DiceProps) {
         )}
       </button>
 
-      <p className="font-sans text-xs text-muted-foreground">
+      <p className="font-sans text-xs text-muted-foreground h-4 flex items-center justify-center">
         {dice.isRolling
           ? "Rolling..."
           : isCpu
             ? "CPU is playing..."
             : canRoll
               ? "Roll to play"
-              : ""}
+              : "\u00A0"}
       </p>
 
       <style jsx>{`
@@ -138,9 +134,15 @@ export function Dice({ state, onRoll }: DiceProps) {
           80% { transform: rotateX(288deg) rotateZ(-8deg) scale(0.97); }
           100% { transform: rotateX(360deg) rotateZ(0deg) scale(1); }
         }
-        @keyframes dice-breathe {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 6px #0a0a1a; }
-          50% { transform: scale(1.03); box-shadow: 0 0 14px #3a5a6a44; }
+        @keyframes dice-neon-glow {
+          0%, 100% { 
+            opacity: 0.85;
+            transform: scale(1);
+          }
+          50% { 
+            opacity: 1;
+            transform: scale(1.02);
+          }
         }
       `}</style>
     </div>
