@@ -8,12 +8,10 @@ interface ScoreboardProps {
   state: GameState
 }
 
-export function Scoreboard({ state }: ScoreboardProps) {
+/* Left side - Team score and overs */
+export function ScoreboardLeft({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
-  const bowling = state[state.bowlingTeamKey]
   const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
-  const striker = batting.players[batting.currentBatsmanIndex]
-  const nonStriker = batting.players[batting.nonStrikerIndex]
   const oversStr = getOverString(batting.overs, batting.balls)
 
   // Target info for 2nd innings
@@ -29,65 +27,87 @@ export function Scoreboard({ state }: ScoreboardProps) {
       : null
 
   return (
-    <div className="flex w-full flex-col justify-center rounded-lg bg-background/90 p-2 backdrop-blur-sm">
-      {/* Team name + Score in one row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <span
-            className="h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: battingColor }}
-          />
-          <span className="font-sans text-[9px] text-muted-foreground">
-            {batting.name}
-          </span>
-        </div>
-        <span className="font-sans text-[8px] text-muted-foreground/70">
-          Inn {state.currentInnings}
+    <div className="pointer-events-auto flex flex-col items-center justify-center rounded-lg bg-background/85 p-1.5 backdrop-blur-sm w-[72px]">
+      {/* Team indicator */}
+      <div className="flex items-center gap-1 mb-0.5">
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ backgroundColor: battingColor }}
+        />
+        <span className="font-sans text-[7px] text-muted-foreground truncate max-w-[50px]">
+          {batting.name}
         </span>
       </div>
 
-      {/* Main score - large and centered */}
-      <div className="flex items-baseline justify-center gap-1 py-1">
-        <span className="font-mono text-2xl font-bold text-foreground">
-          {batting.totalRuns}/{batting.wickets}
-        </span>
-        <span className="font-mono text-[9px] text-muted-foreground">
-          ({oversStr})
-        </span>
-      </div>
+      {/* Main score */}
+      <span className="font-mono text-lg font-bold text-foreground leading-tight">
+        {batting.totalRuns}/{batting.wickets}
+      </span>
 
-      {/* Batsmen - compact */}
-      <div className="flex flex-col gap-0.5 border-t border-border/20 pt-1">
-        {striker && !striker.isOut && (
-          <div className="flex items-center justify-between">
-            <span className="font-sans text-[8px] text-muted-foreground">
-              {striker.name}*
-            </span>
-            <span className="font-mono text-[10px] font-semibold" style={{ color: battingColor }}>
-              {striker.runs}<span className="text-[8px] text-muted-foreground">({striker.ballsFaced})</span>
-            </span>
-          </div>
-        )}
-        {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
-          <div className="flex items-center justify-between">
-            <span className="font-sans text-[7px] text-muted-foreground/60">
-              {nonStriker.name}
-            </span>
-            <span className="font-mono text-[8px] text-muted-foreground/70">
-              {nonStriker.runs}({nonStriker.ballsFaced})
-            </span>
-          </div>
-        )}
-      </div>
+      {/* Overs */}
+      <span className="font-mono text-[8px] text-muted-foreground">
+        ({oversStr} ov)
+      </span>
 
-      {/* Target chase info */}
+      {/* Target chase */}
       {targetInfo && targetInfo.remaining > 0 && (
-        <p className="font-sans text-[8px] text-accent text-center mt-0.5">
+        <p className="font-sans text-[7px] text-accent mt-0.5 text-center">
           Need {targetInfo.remaining}
-          {targetInfo.totalBalls !== null ? ` from ${targetInfo.totalBalls}b` : ""}
         </p>
       )}
     </div>
+  )
+}
+
+/* Right side - Batsmen info */
+export function ScoreboardRight({ state }: ScoreboardProps) {
+  const batting = state[state.battingTeamKey]
+  const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
+  const striker = batting.players[batting.currentBatsmanIndex]
+  const nonStriker = batting.players[batting.nonStrikerIndex]
+
+  return (
+    <div className="pointer-events-auto flex flex-col items-center justify-center rounded-lg bg-background/85 p-1.5 backdrop-blur-sm w-[72px]">
+      {/* Innings indicator */}
+      <span className="font-sans text-[7px] text-muted-foreground/70 mb-0.5">
+        Inn {state.currentInnings}
+      </span>
+
+      {/* Striker */}
+      {striker && !striker.isOut && (
+        <div className="flex flex-col items-center">
+          <span className="font-sans text-[7px] text-muted-foreground truncate max-w-[60px]">
+            {striker.name}*
+          </span>
+          <span className="font-mono text-sm font-semibold leading-tight" style={{ color: battingColor }}>
+            {striker.runs}
+            <span className="text-[7px] text-muted-foreground">({striker.ballsFaced})</span>
+          </span>
+        </div>
+      )}
+
+      {/* Non-striker */}
+      {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
+        <div className="flex flex-col items-center mt-0.5 opacity-70">
+          <span className="font-sans text-[6px] text-muted-foreground/60 truncate max-w-[60px]">
+            {nonStriker.name}
+          </span>
+          <span className="font-mono text-[9px] text-muted-foreground">
+            {nonStriker.runs}({nonStriker.ballsFaced})
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* Combined scoreboard for backward compatibility */
+export function Scoreboard({ state }: ScoreboardProps) {
+  return (
+    <>
+      <ScoreboardLeft state={state} />
+      <ScoreboardRight state={state} />
+    </>
   )
 }
 

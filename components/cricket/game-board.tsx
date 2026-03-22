@@ -142,7 +142,41 @@ export function GameBoard({ state, children }: GameBoardProps) {
         ctx.fill()
       }
 
-      // Center area is now handled by React children (scoreboard)
+      // Center area - cricket pitch graphic
+      const pitchW = minDim * 0.10
+      const pitchH = minDim * 0.20
+      ctx.save()
+      ctx.fillStyle = "#1a2a1a"
+      ctx.strokeStyle = "#2a4a2a"
+      ctx.lineWidth = 1
+
+      // Pitch rectangle
+      const pitchRoundedRadius = 4
+      ctx.beginPath()
+      ctx.roundRect(cx - pitchW / 2, cy - pitchH / 2, pitchW, pitchH, pitchRoundedRadius)
+      ctx.fill()
+      ctx.stroke()
+
+      // Crease lines
+      ctx.strokeStyle = "#4a6a4a"
+      ctx.lineWidth = 1
+      const creaseY1 = cy - pitchH * 0.35
+      const creaseY2 = cy + pitchH * 0.35
+      ctx.beginPath()
+      ctx.moveTo(cx - pitchW * 0.35, creaseY1)
+      ctx.lineTo(cx + pitchW * 0.35, creaseY1)
+      ctx.moveTo(cx - pitchW * 0.35, creaseY2)
+      ctx.lineTo(cx + pitchW * 0.35, creaseY2)
+      ctx.stroke()
+
+      // Stumps
+      ctx.fillStyle = "#8a7a5a"
+      for (const creaseY of [creaseY1, creaseY2]) {
+        for (let s = -1; s <= 1; s++) {
+          ctx.fillRect(cx + s * 2 - 0.5, creaseY - 3, 1, 6)
+        }
+      }
+      ctx.restore()
     },
     [state, tokenColor]
   )
@@ -180,12 +214,10 @@ export function GameBoard({ state, children }: GameBoardProps) {
         style={{ display: "block" }}
       />
       
-      {/* Center content (scoreboard) */}
+      {/* Left and right content areas for split scoreboard */}
       {children && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="pointer-events-auto w-[45%]">
-            {children}
-          </div>
+        <div className="absolute inset-0 flex items-center justify-between pointer-events-none px-2">
+          {children}
         </div>
       )}
 
