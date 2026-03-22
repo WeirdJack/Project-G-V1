@@ -214,12 +214,8 @@ export function GameBoard({ state, children }: GameBoardProps) {
         style={{ display: "block" }}
       />
       
-      {/* Top and bottom content areas for split scoreboard - between pitch and circular arc */}
-      {children && (
-        <div className="absolute inset-[22%] flex flex-col items-center justify-between pointer-events-none">
-          {children}
-        </div>
-      )}
+      {/* Corner score components - outside circular area but inside game board */}
+      {children}
 
       {/* Flash effects */}
       {state.flashEffect && (
