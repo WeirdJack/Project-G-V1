@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useCallback } from "react"
+import { useRef, useEffect, useCallback, type ReactNode } from "react"
 import type { GameState } from "@/lib/cricket-game/types"
 import {
   BOARD_SQUARES,
@@ -12,6 +12,7 @@ import {
 
 interface GameBoardProps {
   state: GameState
+  children?: ReactNode
 }
 
 function getSquarePositions(
@@ -34,7 +35,7 @@ function getSquarePositions(
   return positions
 }
 
-export function GameBoard({ state }: GameBoardProps) {
+export function GameBoard({ state, children }: GameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animFrameRef = useRef<number>(0)
   const timeRef = useRef(0)
@@ -141,54 +142,7 @@ export function GameBoard({ state }: GameBoardProps) {
         ctx.fill()
       }
 
-      // Center area - cricket pitch graphic
-      const pitchW = minDim * 0.12
-      const pitchH = minDim * 0.22
-      ctx.save()
-      ctx.fillStyle = "#1a2a1a"
-      ctx.strokeStyle = "#2a4a2a"
-      ctx.lineWidth = 1
-
-      // Pitch rectangle
-      const pitchRoundedRadius = 6
-      ctx.beginPath()
-      ctx.roundRect(cx - pitchW / 2, cy - pitchH / 2, pitchW, pitchH, pitchRoundedRadius)
-      ctx.fill()
-      ctx.stroke()
-
-      // Crease lines
-      ctx.strokeStyle = "#4a6a4a"
-      ctx.lineWidth = 1
-      const creaseY1 = cy - pitchH * 0.35
-      const creaseY2 = cy + pitchH * 0.35
-      ctx.beginPath()
-      ctx.moveTo(cx - pitchW * 0.35, creaseY1)
-      ctx.lineTo(cx + pitchW * 0.35, creaseY1)
-      ctx.moveTo(cx - pitchW * 0.35, creaseY2)
-      ctx.lineTo(cx + pitchW * 0.35, creaseY2)
-      ctx.stroke()
-
-      // Stumps
-      ctx.fillStyle = "#8a7a5a"
-      for (const creaseY of [creaseY1, creaseY2]) {
-        for (let s = -1; s <= 1; s++) {
-          ctx.fillRect(cx + s * 3 - 0.5, creaseY - 4, 1.5, 8)
-        }
-      }
-      ctx.restore()
-
-      // Center text: innings info
-      ctx.fillStyle = "#6a8a9a"
-      ctx.font = `${minDim * 0.022}px 'Geist', sans-serif`
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      const battingTeamName = state[state.battingTeamKey].name
-      ctx.fillText(battingTeamName, cx, cy + pitchH / 2 + minDim * 0.05)
-      ctx.fillText(
-        `Innings ${state.currentInnings}`,
-        cx,
-        cy - pitchH / 2 - minDim * 0.05
-      )
+      // Center area is now handled by React children (scoreboard)
     },
     [state, tokenColor]
   )
@@ -219,12 +173,21 @@ export function GameBoard({ state }: GameBoardProps) {
   }, [draw])
 
   return (
-    <div className="relative aspect-square w-full max-w-[500px]">
+    <div className="relative aspect-square w-full max-w-[320px]">
       <canvas
         ref={canvasRef}
         className="h-full w-full"
         style={{ display: "block" }}
       />
+      
+      {/* Center content (scoreboard) */}
+      {children && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto w-[45%]">
+            {children}
+          </div>
+        </div>
+      )}
 
       {/* Flash effects */}
       {state.flashEffect && (

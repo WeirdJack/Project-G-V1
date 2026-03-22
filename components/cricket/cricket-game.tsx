@@ -101,24 +101,21 @@ export function CricketGame() {
           </div>
         </div>
 
-        {/* Game board in the middle - takes remaining space */}
+        {/* Game board in the middle with scoreboard inside */}
         <div className="flex flex-1 items-center justify-center w-full">
-          <GameBoard state={state} />
+          <GameBoard state={state}>
+            <Scoreboard state={state} />
+          </GameBoard>
         </div>
 
-        {/* Bottom section: This Over + Dice + Scoreboard */}
-        <div className="w-full max-w-md mx-auto flex flex-col gap-2">
-          {/* This Over - full width */}
+        {/* Bottom section: This Over + Dice */}
+        <div className="w-full max-w-md mx-auto flex flex-col items-center gap-2">
+          {/* This Over */}
           <ThisOver state={state} />
           
-          {/* Dice + Scoreboard side by side */}
-          <div className="flex w-full items-stretch justify-center gap-3">
-            <div className="flex shrink-0 flex-col items-center justify-center">
-              <Dice state={state} onRoll={rollDice} />
-            </div>
-            <div className="min-w-0 flex-1 flex">
-              <Scoreboard state={state} />
-            </div>
+          {/* Dice centered at bottom */}
+          <div className="flex items-center justify-center">
+            <Dice state={state} onRoll={rollDice} />
           </div>
         </div>
       </div>

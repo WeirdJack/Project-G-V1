@@ -29,81 +29,64 @@ export function Scoreboard({ state }: ScoreboardProps) {
       : null
 
   return (
-    <div className="flex w-full flex-col justify-center" style={{ height: 120 }}>
-      {/* Main score card with batter info inside */}
-      <div
-        className="flex flex-col gap-1 rounded-xl border border-border/50 bg-card/80 p-2"
-        style={{ borderLeftColor: battingColor, borderLeftWidth: 3 }}
-      >
-        {/* Team name and innings */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: battingColor }}
-            />
-            <span className="font-sans text-xs font-medium text-foreground">
-              {batting.name}
+    <div className="flex w-full flex-col justify-center rounded-lg bg-background/90 p-2 backdrop-blur-sm">
+      {/* Team name + Score in one row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: battingColor }}
+          />
+          <span className="font-sans text-[9px] text-muted-foreground">
+            {batting.name}
+          </span>
+        </div>
+        <span className="font-sans text-[8px] text-muted-foreground/70">
+          Inn {state.currentInnings}
+        </span>
+      </div>
+
+      {/* Main score - large and centered */}
+      <div className="flex items-baseline justify-center gap-1 py-1">
+        <span className="font-mono text-2xl font-bold text-foreground">
+          {batting.totalRuns}/{batting.wickets}
+        </span>
+        <span className="font-mono text-[9px] text-muted-foreground">
+          ({oversStr})
+        </span>
+      </div>
+
+      {/* Batsmen - compact */}
+      <div className="flex flex-col gap-0.5 border-t border-border/20 pt-1">
+        {striker && !striker.isOut && (
+          <div className="flex items-center justify-between">
+            <span className="font-sans text-[8px] text-muted-foreground">
+              {striker.name}*
+            </span>
+            <span className="font-mono text-[10px] font-semibold" style={{ color: battingColor }}>
+              {striker.runs}<span className="text-[8px] text-muted-foreground">({striker.ballsFaced})</span>
             </span>
           </div>
-          <span className="font-sans text-[10px] text-muted-foreground">
-            Inn. {state.currentInnings}
-          </span>
-        </div>
-
-        {/* Team score */}
-        <div className="flex items-baseline gap-1.5">
-          <span className="font-mono text-xl font-bold text-foreground">
-            {batting.totalRuns}/{batting.wickets}
-          </span>
-          <span className="font-mono text-[10px] text-muted-foreground">
-            ({oversStr})
-          </span>
-        </div>
-
-        {/* Batsmen - striker and non-striker */}
-        <div className="flex flex-col gap-0.5 border-t border-border/30 pt-1">
-          {/* Striker */}
-          {striker && !striker.isOut && (
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-[10px] text-muted-foreground">
-                {striker.name}*
-              </span>
-              <span className="font-mono text-xs font-semibold" style={{ color: battingColor }}>
-                {striker.runs}
-                <span className="text-[9px] text-muted-foreground ml-0.5">
-                  ({striker.ballsFaced})
-                </span>
-              </span>
-            </div>
-          )}
-          {/* Non-striker */}
-          {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-[9px] text-muted-foreground/70">
-                {nonStriker.name}
-              </span>
-              <span className="font-mono text-[10px] text-muted-foreground">
-                {nonStriker.runs}
-                <span className="text-[9px] text-muted-foreground/70 ml-0.5">
-                  ({nonStriker.ballsFaced})
-                </span>
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Target chase info */}
-        {targetInfo && targetInfo.remaining > 0 && (
-          <p className="font-sans text-[10px] text-accent">
-            Need {targetInfo.remaining}
-            {targetInfo.totalBalls !== null
-              ? ` from ${targetInfo.totalBalls} balls`
-              : " more"}
-          </p>
+        )}
+        {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
+          <div className="flex items-center justify-between">
+            <span className="font-sans text-[7px] text-muted-foreground/60">
+              {nonStriker.name}
+            </span>
+            <span className="font-mono text-[8px] text-muted-foreground/70">
+              {nonStriker.runs}({nonStriker.ballsFaced})
+            </span>
+          </div>
         )}
       </div>
 
+      {/* Target chase info */}
+      {targetInfo && targetInfo.remaining > 0 && (
+        <p className="font-sans text-[8px] text-accent text-center mt-0.5">
+          Need {targetInfo.remaining}
+          {targetInfo.totalBalls !== null ? ` from ${targetInfo.totalBalls}b` : ""}
+        </p>
+      )}
     </div>
   )
 }
