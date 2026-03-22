@@ -27,31 +27,34 @@ export function ScoreboardLeft({ state }: ScoreboardProps) {
       : null
 
   return (
-    <div className="pointer-events-auto flex flex-col items-center justify-center rounded-md bg-background/80 p-1 backdrop-blur-sm">
-      {/* Team indicator */}
-      <div className="flex items-center gap-0.5">
+    <div className="pointer-events-auto flex flex-col items-center justify-center rounded-md bg-background/85 p-2 backdrop-blur-sm min-h-[72px]">
+      {/* Team name - bold and prominent */}
+      <div className="flex items-center gap-1 mb-1">
         <span
-          className="h-1 w-1 rounded-full"
+          className="h-2 w-2 rounded-full"
           style={{ backgroundColor: battingColor }}
         />
-        <span className="font-sans text-[6px] text-muted-foreground truncate max-w-[40px]">
+        <span 
+          className="font-sans text-[10px] font-bold truncate max-w-[50px]"
+          style={{ color: battingColor }}
+        >
           {batting.name}
         </span>
       </div>
 
       {/* Main score */}
-      <span className="font-mono text-base font-bold text-foreground leading-none">
+      <span className="font-mono text-xl font-bold text-foreground leading-none">
         {batting.totalRuns}/{batting.wickets}
       </span>
 
       {/* Overs */}
-      <span className="font-mono text-[7px] text-muted-foreground">
+      <span className="font-mono text-[9px] text-muted-foreground mt-0.5">
         ({oversStr})
       </span>
 
       {/* Target chase */}
       {targetInfo && targetInfo.remaining > 0 && (
-        <p className="font-sans text-[6px] text-accent text-center">
+        <p className="font-sans text-[8px] text-accent text-center mt-0.5 font-medium">
           Need {targetInfo.remaining}
         </p>
       )}
@@ -67,32 +70,35 @@ export function ScoreboardRight({ state }: ScoreboardProps) {
   const nonStriker = batting.players[batting.nonStrikerIndex]
 
   return (
-    <div className="pointer-events-auto flex flex-col items-center justify-center rounded-md bg-background/80 p-1 backdrop-blur-sm">
+    <div className="pointer-events-auto flex flex-col items-center justify-center rounded-md bg-background/85 p-2 backdrop-blur-sm min-h-[72px]">
       {/* Innings indicator */}
-      <span className="font-sans text-[6px] text-muted-foreground/70">
-        Inn {state.currentInnings}
+      <span className="font-sans text-[8px] text-muted-foreground/80 mb-1">
+        Innings {state.currentInnings}
       </span>
 
       {/* Striker */}
       {striker && !striker.isOut && (
         <div className="flex flex-col items-center">
-          <span className="font-sans text-[6px] text-muted-foreground truncate max-w-[45px]">
+          <span 
+            className="font-sans text-[10px] font-bold truncate max-w-[55px]"
+            style={{ color: battingColor }}
+          >
             {striker.name}*
           </span>
-          <span className="font-mono text-sm font-semibold leading-none" style={{ color: battingColor }}>
+          <span className="font-mono text-lg font-bold leading-none" style={{ color: battingColor }}>
             {striker.runs}
-            <span className="text-[6px] text-muted-foreground">({striker.ballsFaced})</span>
+            <span className="text-[8px] text-muted-foreground font-normal">({striker.ballsFaced})</span>
           </span>
         </div>
       )}
 
       {/* Non-striker */}
       {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
-        <div className="flex flex-col items-center opacity-60">
-          <span className="font-sans text-[5px] text-muted-foreground/60 truncate max-w-[45px]">
+        <div className="flex flex-col items-center mt-1 opacity-70">
+          <span className="font-sans text-[8px] font-medium text-muted-foreground truncate max-w-[55px]">
             {nonStriker.name}
           </span>
-          <span className="font-mono text-[8px] text-muted-foreground">
+          <span className="font-mono text-[10px] text-muted-foreground">
             {nonStriker.runs}({nonStriker.ballsFaced})
           </span>
         </div>
