@@ -262,17 +262,14 @@ const ARM_COMPONENTS: Record<UmpireSignal, React.FC> = {
 
 export function Umpire({ state }: UmpireProps) {
   const [signal, setSignal] = useState<UmpireSignal>("idle")
-  const [showLabel, setShowLabel] = useState(false)
 
   useEffect(() => {
     if (state.lastSquareLanded) {
       const s = squareTypeToSignal(state.lastSquareLanded.type)
       setSignal(s)
-      setShowLabel(true)
     } else {
       const t = setTimeout(() => {
         setSignal("idle")
-        setShowLabel(false)
       }, 300)
       return () => clearTimeout(t)
     }
@@ -284,19 +281,6 @@ export function Umpire({ state }: UmpireProps) {
 
   return (
     <div className="flex flex-col items-center gap-1">
-      {/* Signal label */}
-      <div
-        className="flex h-7 items-center justify-center font-mono text-sm font-bold tracking-widest transition-all duration-300"
-        style={{
-          color: cfg.color,
-          opacity: showLabel && cfg.label ? 1 : 0,
-          transform: showLabel && cfg.label ? "translateY(0)" : "translateY(6px)",
-          textShadow: showLabel ? `0 0 14px ${cfg.glow}, 0 0 28px ${cfg.glow}` : "none",
-        }}
-      >
-        {cfg.label}
-      </div>
-
       {/* Umpire figure */}
       <div
         className="relative"
