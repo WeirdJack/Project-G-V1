@@ -214,9 +214,9 @@ export function GameBoard({ state, children }: GameBoardProps) {
         style={{ display: "block" }}
       />
       
-      {/* Left and right content areas for split scoreboard - between pitch and circular arc */}
+      {/* Top and bottom content areas for split scoreboard - between pitch and circular arc */}
       {children && (
-        <div className="absolute inset-[28%] flex items-center justify-between pointer-events-none">
+        <div className="absolute inset-[22%] flex flex-col items-center justify-between pointer-events-none">
           {children}
         </div>
       )}

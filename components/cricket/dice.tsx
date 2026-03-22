@@ -115,14 +115,14 @@ export function Dice({ state, onRoll }: DiceProps) {
         )}
       </button>
 
-      <p className="font-sans text-xs text-muted-foreground">
+      <p className="font-sans text-xs text-muted-foreground h-4 flex items-center justify-center">
         {dice.isRolling
           ? "Rolling..."
           : isCpu
             ? "CPU is playing..."
             : canRoll
               ? "Roll to play"
-              : ""}
+              : "\u00A0"}
       </p>
 
       <style jsx>{`

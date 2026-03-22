@@ -8,8 +8,8 @@ interface ScoreboardProps {
   state: GameState
 }
 
-/* Left side - Team score and overs */
-export function ScoreboardLeft({ state }: ScoreboardProps) {
+/* Top - Team score and overs */
+export function ScoreboardTop({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
   const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
   const oversStr = getOverString(batting.overs, batting.balls)
@@ -62,8 +62,8 @@ export function ScoreboardLeft({ state }: ScoreboardProps) {
   )
 }
 
-/* Right side - Batsmen info */
-export function ScoreboardRight({ state }: ScoreboardProps) {
+/* Bottom - Batsmen info */
+export function ScoreboardBottom({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
   const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
   const striker = batting.players[batting.currentBatsmanIndex]
@@ -111,8 +111,8 @@ export function ScoreboardRight({ state }: ScoreboardProps) {
 export function Scoreboard({ state }: ScoreboardProps) {
   return (
     <>
-      <ScoreboardLeft state={state} />
-      <ScoreboardRight state={state} />
+      <ScoreboardTop state={state} />
+      <ScoreboardBottom state={state} />
     </>
   )
 }
