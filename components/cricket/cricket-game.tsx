@@ -91,7 +91,7 @@ export function CricketGame() {
 
       {/* Main game area */}
       <div className="flex flex-1 flex-col items-center gap-2 p-2">
-        {/* Umpire + Commentary side by side - always horizontal */}
+        {/* Umpire + Commentary side by side at the top */}
         <div className="flex w-full items-stretch justify-center gap-3 max-w-md mx-auto">
           <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
@@ -101,23 +101,26 @@ export function CricketGame() {
           </div>
         </div>
 
-        {/* Dice + Scoreboard side by side - aligned with above row */}
-        <div className="flex w-full items-stretch justify-center gap-3 max-w-md mx-auto">
-          <div className="flex shrink-0 flex-col items-center">
-            <Dice state={state} onRoll={rollDice} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <Scoreboard state={state} />
-          </div>
+        {/* Game board in the middle - takes remaining space */}
+        <div className="flex flex-1 items-center justify-center w-full">
+          <GameBoard state={state} />
         </div>
 
-        {/* This Over - full width spanning both columns */}
-        <div className="w-full max-w-md mx-auto">
+        {/* Bottom section: This Over + Dice + Scoreboard */}
+        <div className="w-full max-w-md mx-auto flex flex-col gap-2">
+          {/* This Over - full width */}
           <ThisOver state={state} />
+          
+          {/* Dice + Scoreboard side by side */}
+          <div className="flex w-full items-stretch justify-center gap-3">
+            <div className="flex shrink-0 flex-col items-center justify-center">
+              <Dice state={state} onRoll={rollDice} />
+            </div>
+            <div className="min-w-0 flex-1 flex">
+              <Scoreboard state={state} />
+            </div>
+          </div>
         </div>
-
-        {/* Board below */}
-        <GameBoard state={state} />
       </div>
     </div>
   )

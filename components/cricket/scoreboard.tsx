@@ -29,10 +29,10 @@ export function Scoreboard({ state }: ScoreboardProps) {
       : null
 
   return (
-    <div className="flex h-full w-full flex-col gap-2">
+    <div className="flex w-full flex-col justify-center" style={{ height: 120 }}>
       {/* Main score card with batter info inside */}
       <div
-        className="flex flex-col gap-2 rounded-xl border border-border/50 bg-card/80 p-3"
+        className="flex flex-col gap-1 rounded-xl border border-border/50 bg-card/80 p-2"
         style={{ borderLeftColor: battingColor, borderLeftWidth: 3 }}
       >
         {/* Team name and innings */}
@@ -53,25 +53,25 @@ export function Scoreboard({ state }: ScoreboardProps) {
 
         {/* Team score */}
         <div className="flex items-baseline gap-1.5">
-          <span className="font-mono text-2xl font-bold text-foreground">
+          <span className="font-mono text-xl font-bold text-foreground">
             {batting.totalRuns}/{batting.wickets}
           </span>
-          <span className="font-mono text-xs text-muted-foreground">
+          <span className="font-mono text-[10px] text-muted-foreground">
             ({oversStr})
           </span>
         </div>
 
         {/* Batsmen - striker and non-striker */}
-        <div className="flex flex-col gap-1 border-t border-border/30 pt-2">
+        <div className="flex flex-col gap-0.5 border-t border-border/30 pt-1">
           {/* Striker */}
           {striker && !striker.isOut && (
             <div className="flex items-center justify-between">
-              <span className="font-sans text-xs text-muted-foreground">
+              <span className="font-sans text-[10px] text-muted-foreground">
                 {striker.name}*
               </span>
-              <span className="font-mono text-sm font-semibold" style={{ color: battingColor }}>
+              <span className="font-mono text-xs font-semibold" style={{ color: battingColor }}>
                 {striker.runs}
-                <span className="text-[10px] text-muted-foreground ml-0.5">
+                <span className="text-[9px] text-muted-foreground ml-0.5">
                   ({striker.ballsFaced})
                 </span>
               </span>
@@ -80,12 +80,12 @@ export function Scoreboard({ state }: ScoreboardProps) {
           {/* Non-striker */}
           {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
             <div className="flex items-center justify-between">
-              <span className="font-sans text-[10px] text-muted-foreground/70">
+              <span className="font-sans text-[9px] text-muted-foreground/70">
                 {nonStriker.name}
               </span>
-              <span className="font-mono text-xs text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground">
                 {nonStriker.runs}
-                <span className="text-[10px] text-muted-foreground/70 ml-0.5">
+                <span className="text-[9px] text-muted-foreground/70 ml-0.5">
                   ({nonStriker.ballsFaced})
                 </span>
               </span>
@@ -104,19 +104,6 @@ export function Scoreboard({ state }: ScoreboardProps) {
         )}
       </div>
 
-      {/* Bowling team score (if 2nd innings) */}
-      {state.currentInnings === 2 && (
-        <div className="flex items-center justify-between rounded-lg bg-secondary/30 px-2 py-1.5">
-          <span className="font-sans text-[10px] text-muted-foreground">
-            {bowling.name}
-          </span>
-          <span className="font-mono text-xs text-muted-foreground">
-            {state[state.bowlingTeamKey === "team1" ? "team1" : "team2"].totalRuns}/{
-              state[state.bowlingTeamKey === "team1" ? "team1" : "team2"].wickets
-            }
-          </span>
-        </div>
-      )}
     </div>
   )
 }
