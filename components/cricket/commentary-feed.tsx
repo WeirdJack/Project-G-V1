@@ -12,8 +12,8 @@ export function CommentaryFeed({ state }: CommentaryFeedProps) {
 
   if (recentEvents.length === 0) {
     return (
-      <div className="flex h-full max-h-[180px] w-full items-center justify-center rounded-xl border border-border/30 bg-card/60 p-2">
-        <p className="font-sans text-[10px] text-muted-foreground">
+      <div className="flex h-full max-h-[120px] w-full items-center justify-center rounded-xl border border-border/30 bg-card/60 p-1.5">
+        <p className="font-sans text-[9px] text-muted-foreground">
           Waiting for first delivery...
         </p>
       </div>
@@ -21,21 +21,21 @@ export function CommentaryFeed({ state }: CommentaryFeedProps) {
   }
 
   return (
-    <div className="flex h-full max-h-[180px] w-full flex-col gap-1 overflow-hidden rounded-xl border border-border/30 bg-card/60 p-2">
-      <h3 className="mb-0.5 font-sans text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+    <div className="flex h-full max-h-[120px] w-full flex-col gap-0.5 overflow-hidden rounded-xl border border-border/30 bg-card/60 p-1.5">
+      <h3 className="font-sans text-[8px] font-medium uppercase tracking-wider text-muted-foreground">
         Commentary
       </h3>
-      {recentEvents.map((event, i) => (
+      {recentEvents.slice(0, 3).map((event, i) => (
         <div
           key={`${event.over}-${event.ball}-${i}`}
-          className="flex items-start gap-2 py-1"
+          className="flex items-start gap-1.5 py-0.5"
           style={{
             opacity: 1 - i * 0.15,
             animation: i === 0 ? "slide-in 0.3s ease-out" : "none",
           }}
         >
           <span
-            className="mt-0.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded font-mono text-xs font-medium"
+            className="inline-flex h-4 min-w-[16px] items-center justify-center rounded font-mono text-[9px] font-medium"
             style={{
               backgroundColor: event.isWicket
                 ? "#7a2a2a"
@@ -55,7 +55,7 @@ export function CommentaryFeed({ state }: CommentaryFeedProps) {
           >
             {event.isWicket ? "W" : event.isExtra ? "+1" : event.runs}
           </span>
-          <p className="font-sans text-xs leading-relaxed text-muted-foreground">
+          <p className="font-sans text-[9px] leading-tight text-muted-foreground line-clamp-2">
             {event.commentary}
           </p>
         </div>
