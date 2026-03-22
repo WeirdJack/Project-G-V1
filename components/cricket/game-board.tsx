@@ -124,22 +124,26 @@ export function GameBoard({ state, children }: GameBoardProps) {
       }
 
       if (tokenPos) {
-        // Token glow
+        // Token glow - more transparent
         const glowPulse = 0.6 + 0.4 * Math.sin(time * 3)
         ctx.save()
+        ctx.globalAlpha = 0.5
         ctx.shadowColor = tokenColor
-        ctx.shadowBlur = 12 + glowPulse * 8
+        ctx.shadowBlur = 8 + glowPulse * 6
         ctx.beginPath()
-        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.55, 0, Math.PI * 2)
+        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.45, 0, Math.PI * 2)
         ctx.fillStyle = tokenColor
         ctx.fill()
         ctx.restore()
 
-        // Token inner
+        // Token inner ring - more transparent
+        ctx.save()
+        ctx.globalAlpha = 0.6
         ctx.beginPath()
-        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.35, 0, Math.PI * 2)
+        ctx.arc(tokenPos.x, tokenPos.y, squareSize * 0.25, 0, Math.PI * 2)
         ctx.fillStyle = "#0a0a1a"
         ctx.fill()
+        ctx.restore()
       }
 
       // Center area - cricket pitch graphic
