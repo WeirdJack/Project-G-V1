@@ -89,10 +89,10 @@ export function CricketGame() {
         </div>
       </header>
 
-      {/* Main game area */}
-      <div className="flex flex-1 flex-col items-center gap-2 p-2">
+      {/* Main game area - compact spacing */}
+      <div className="flex flex-1 flex-col items-center gap-1 p-1">
         {/* Umpire + Commentary side by side at the top */}
-        <div className="flex w-full items-stretch justify-center gap-3 max-w-md mx-auto">
+        <div className="flex w-full items-stretch justify-center gap-2 max-w-md mx-auto">
           <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
           </div>
@@ -102,14 +102,14 @@ export function CricketGame() {
         </div>
 
         {/* Game board in the middle with scoreboard inside */}
-        <div className="flex flex-1 items-center justify-center w-full">
+        <div className="flex items-center justify-center w-full">
           <GameBoard state={state}>
             <Scoreboard state={state} />
           </GameBoard>
         </div>
 
         {/* Bottom section: This Over + Dice */}
-        <div className="w-full max-w-md mx-auto flex flex-col items-center gap-2">
+        <div className="w-full max-w-md mx-auto flex flex-col items-center gap-1">
           {/* This Over */}
           <ThisOver state={state} />
           
