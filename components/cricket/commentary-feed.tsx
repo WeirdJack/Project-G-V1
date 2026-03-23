@@ -12,8 +12,8 @@ export function CommentaryFeed({ state }: CommentaryFeedProps) {
 
   if (recentEvents.length === 0) {
     return (
-      <div className="flex h-full max-h-[120px] w-full items-center justify-center rounded-xl border border-border/30 bg-card/60 p-1.5">
-        <p className="font-sans text-[9px] text-muted-foreground">
+      <div className="flex h-full max-h-[138px] w-full items-center justify-center rounded-xl border border-border/30 bg-card/60 p-2">
+        <p className="font-sans text-[10px] text-muted-foreground">
           Waiting for first delivery...
         </p>
       </div>
@@ -21,7 +21,7 @@ export function CommentaryFeed({ state }: CommentaryFeedProps) {
   }
 
   return (
-    <div className="flex h-full max-h-[120px] w-full flex-col gap-0.5 overflow-hidden rounded-xl border border-border/30 bg-card/60 p-1.5">
+    <div className="flex h-full max-h-[138px] w-full flex-col gap-1 overflow-hidden rounded-xl border border-border/30 bg-card/60 p-2">
       <h3 className="font-sans text-[8px] font-medium uppercase tracking-wider text-muted-foreground">
         Commentary
       </h3>

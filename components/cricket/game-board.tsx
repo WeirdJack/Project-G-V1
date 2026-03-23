@@ -234,7 +234,7 @@ export function GameBoard({ state, children }: GameBoardProps) {
   }, [draw])
 
   return (
-    <div className="relative aspect-square w-full max-w-[320px]">
+    <div className="relative aspect-square w-full max-w-[290px]">
       <canvas
         ref={canvasRef}
         className="h-full w-full"
