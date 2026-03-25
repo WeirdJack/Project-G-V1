@@ -65,9 +65,9 @@ export function CricketGame() {
 
   // Batting phase - main game UI
   return (
-    <div className="flex min-h-screen flex-col bg-background" onClick={unlockAudio}>
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-background" onClick={unlockAudio}>
       {/* Top bar */}
-      <header className="flex items-center justify-between border-b border-border/30 px-4 py-2">
+      <header className="flex shrink-0 items-center justify-between border-b border-border/30 px-4 py-2">
         <h1 className="font-sans text-sm font-semibold text-foreground">
           Kriklu
         </h1>
@@ -90,9 +90,9 @@ export function CricketGame() {
       </header>
 
       {/* Main game area - evenly spaced */}
-      <div className="flex flex-1 flex-col items-center justify-evenly p-2">
+      <div className="flex flex-1 flex-col items-center justify-evenly overflow-hidden p-2">
         {/* Umpire + Commentary side by side at the top */}
-        <div className="flex w-full items-stretch justify-center gap-3 max-w-md mx-auto">
+        <div className="flex w-full items-stretch justify-center gap-3">
           <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
           </div>
@@ -102,14 +102,14 @@ export function CricketGame() {
         </div>
 
         {/* Game board in the middle with scoreboard inside */}
-        <div className="flex items-center justify-center w-full py-2">
+        <div className="flex items-center justify-center w-full">
           <GameBoard state={state}>
             <Scoreboard state={state} />
           </GameBoard>
         </div>
 
         {/* Bottom section: This Over + Dice */}
-        <div className="w-full max-w-md mx-auto flex flex-col items-center gap-2">
+        <div className="w-full flex flex-col items-center gap-2">
           {/* This Over */}
           <ThisOver state={state} />
           
