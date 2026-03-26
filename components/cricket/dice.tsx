@@ -25,23 +25,28 @@ function randomFace(): number {
   return Math.floor(Math.random() * 6) + 1
 }
 
-function DiceFace({ value, color, size }: { value: number; color: string; size: number }) {
+/* Dot grid for a single face */
+function FaceDots({ value, color }: { value: number; color: string }) {
   const dots = DOT_POSITIONS[value] || DOT_POSITIONS[1]
-  const dotR = size < 80 ? 8 : 10
   return (
-    <svg viewBox="0 0 100 100" width={size} height={size}>
+    <svg viewBox="0 0 100 100" width="100%" height="100%" style={{ position: "absolute", inset: 0 }}>
       {dots.map(([cx, cy], i) => (
         <circle
           key={i}
           cx={cx}
           cy={cy}
-          r={dotR}
+          r={10}
           fill={color}
-          style={{ filter: `drop-shadow(0 0 4px ${color}88)` }}
+          style={{ filter: `drop-shadow(0 0 3px ${color}aa)` }}
         />
       ))}
     </svg>
   )
+}
+
+/* The opposite face value (so the cube looks correct) */
+function opposite(v: number) {
+  return 7 - v
 }
 
 export function Dice({ state, onRoll }: DiceProps) {
@@ -50,7 +55,6 @@ export function Dice({ state, onRoll }: DiceProps) {
   const canRoll = !dice.isRolling && !state.tokenAnimation.isAnimating && !state.flashEffect && !isCpu
   const teamColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
 
-  // Tumbling random faces during roll
   const [tumbleFace, setTumbleFace] = useState(1)
   const tumbleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -65,54 +69,139 @@ export function Dice({ state, onRoll }: DiceProps) {
     }
   }, [dice.isRolling])
 
-  // Determine which face to show
-  const displayValue = dice.isRolling ? tumbleFace : dice.value > 0 ? dice.value : 0
-  const showIdle = !dice.isRolling && dice.value === 0
+  const frontValue = dice.isRolling ? tumbleFace : dice.value > 0 ? dice.value : 6
+  const topValue = opposite(frontValue) === frontValue ? (frontValue % 6) + 1 : Math.max(1, (frontValue + 1) % 7 || 1)
+  const rightValue = [1, 2, 3, 4, 5, 6].find(v => v !== frontValue && v !== topValue && v !== opposite(frontValue)) ?? 3
+
+  // Face colors: front is vivid, top/right are darker variants
+  const faceColor = dice.isRolling || dice.value > 0 ? teamColor : "#3a4a5a"
+  const bgFront  = "#0c1424"
+  const bgTop    = "#0a111e"
+  const bgRight  = "#060d18"
+
+  // The cube size — the visible "front face" size
+  const S = 80  // px
+  const D = 22  // depth/skew size
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-2">
       <button
         onClick={canRoll ? () => { unlockAudio(); onRoll(); } : undefined}
         disabled={!canRoll}
-        className="group relative"
-        style={{ perspective: "600px" }}
         aria-label={canRoll ? "Roll dice" : dice.isRolling ? "Rolling..." : "Wait"}
+        style={{
+          background: "none",
+          border: "none",
+          padding: 0,
+          cursor: canRoll ? "pointer" : "default",
+          width: S + D,
+          height: S + D,
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "flex-start",
+          animation: dice.isRolling
+            ? "cube-tumble 0.25s ease-in-out infinite"
+            : "cube-float 3s ease-in-out infinite",
+        }}
       >
-        <div
-          className="flex items-center justify-center rounded-2xl border-2"
-          style={{
-            width: 96,
-            height: 96,
-            borderColor: teamColor,
-            backgroundColor: "#0c1424",
-            boxShadow: dice.isRolling
-              ? `0 0 28px ${teamColor}66, 0 0 8px ${teamColor}33 inset`
-              : `0 0 20px ${teamColor}55, 0 0 40px ${teamColor}22`,
-            animation: dice.isRolling
-              ? "dice-tumble 0.2s ease-in-out infinite"
-              : "dice-neon-glow 2s ease-in-out infinite",
-            cursor: canRoll ? "pointer" : "default",
-            transition: "box-shadow 0.3s ease, border-color 0.3s ease",
-          }}
+        {/* 3D cube built from 3 parallelogram faces */}
+        <svg
+          width={S + D}
+          height={S + D}
+          viewBox={`0 0 ${S + D} ${S + D}`}
+          style={{ overflow: "visible", display: "block" }}
         >
-          {showIdle ? (
-            /* Idle: show a static "ready" dice face (value 6) with muted color */
-            <DiceFace value={6} color="#3a4a5a" size={72} />
-          ) : (
-            <DiceFace value={displayValue || 1} color={teamColor} size={72} />
-          )}
-        </div>
+          <defs>
+            {/* Clip paths for each face */}
+            {/* Front face: bottom-left square */}
+            <clipPath id="clip-front">
+              <polygon points={`0,${D} ${S},${D} ${S},${S+D} 0,${S+D}`} />
+            </clipPath>
+            {/* Top face: parallelogram on top */}
+            <clipPath id="clip-top">
+              <polygon points={`${D},0 ${S+D},0 ${S},${D} 0,${D}`} />
+            </clipPath>
+            {/* Right face: parallelogram on right */}
+            <clipPath id="clip-right">
+              <polygon points={`${S},${D} ${S+D},0 ${S+D},${S} ${S},${S+D}`} />
+            </clipPath>
+          </defs>
 
-        {/* Hover glow ring */}
-        {canRoll && !dice.isRolling && (
-          <div
-            className="absolute inset-0 rounded-2xl opacity-0 transition-opacity group-hover:opacity-100"
+          {/* --- TOP FACE --- */}
+          <polygon
+            points={`${D},0 ${S+D},0 ${S},${D} 0,${D}`}
+            fill={bgTop}
+            stroke={faceColor}
+            strokeWidth="1.5"
+            strokeOpacity="0.6"
+          />
+          {/* Top face dots — transform into parallelogram space */}
+          <g clipPath="url(#clip-top)" style={{ pointerEvents: "none" }}>
+            <g transform={`matrix(0.78,−0.45,0.78,0.45,${D/2},0)`} style={{ transformOrigin: `${S/2}px ${D/2}px` }}>
+              <FaceDots value={topValue} color={faceColor} />
+            </g>
+          </g>
+
+          {/* --- RIGHT FACE --- */}
+          <polygon
+            points={`${S},${D} ${S+D},0 ${S+D},${S} ${S},${S+D}`}
+            fill={bgRight}
+            stroke={faceColor}
+            strokeWidth="1.5"
+            strokeOpacity="0.4"
+          />
+          <g clipPath="url(#clip-right)" style={{ pointerEvents: "none" }}>
+            <g transform={`matrix(0.78,0.45,0,1,${S},${D/2})`} style={{ transformOrigin: `${S}px ${(S+D)/2}px` }}>
+              <FaceDots value={rightValue} color={faceColor} />
+            </g>
+          </g>
+
+          {/* --- FRONT FACE --- */}
+          <rect
+            x={0} y={D}
+            width={S} height={S}
+            rx={6}
+            fill={bgFront}
+            stroke={faceColor}
+            strokeWidth="2"
             style={{
-              border: `1px solid ${teamColor}55`,
-              boxShadow: `0 0 30px ${teamColor}22`,
+              filter: dice.isRolling
+                ? `drop-shadow(0 0 10px ${faceColor}88)`
+                : `drop-shadow(0 0 6px ${faceColor}55)`,
             }}
           />
-        )}
+          <g clipPath="url(#clip-front)">
+            <g transform={`translate(0,${D})`}>
+              <svg viewBox="0 0 100 100" width={S} height={S} style={{ display: "block" }}>
+                {(DOT_POSITIONS[frontValue] || DOT_POSITIONS[1]).map(([cx, cy], i) => (
+                  <circle
+                    key={i}
+                    cx={cx} cy={cy} r={10}
+                    fill={faceColor}
+                    style={{ filter: `drop-shadow(0 0 3px ${faceColor}aa)` }}
+                  />
+                ))}
+              </svg>
+            </g>
+          </g>
+
+          {/* Edge highlight on front-top border */}
+          <line
+            x1={0} y1={D}
+            x2={S} y2={D}
+            stroke={faceColor}
+            strokeWidth="2"
+            strokeOpacity="0.7"
+          />
+          {/* Edge highlight on front-right border */}
+          <line
+            x1={S} y1={D}
+            x2={S} y2={S+D}
+            stroke={faceColor}
+            strokeWidth="1.5"
+            strokeOpacity="0.5"
+          />
+        </svg>
       </button>
 
       <p className="font-sans text-xs text-muted-foreground h-4 flex items-center justify-center">
@@ -126,23 +215,16 @@ export function Dice({ state, onRoll }: DiceProps) {
       </p>
 
       <style jsx>{`
-        @keyframes dice-tumble {
-          0% { transform: rotateX(0deg) rotateZ(0deg) scale(1); }
-          20% { transform: rotateX(72deg) rotateZ(15deg) scale(1.08); }
-          40% { transform: rotateX(144deg) rotateZ(-10deg) scale(0.95); }
-          60% { transform: rotateX(216deg) rotateZ(12deg) scale(1.06); }
-          80% { transform: rotateX(288deg) rotateZ(-8deg) scale(0.97); }
-          100% { transform: rotateX(360deg) rotateZ(0deg) scale(1); }
+        @keyframes cube-tumble {
+          0%   { transform: rotateX(0deg)   rotateY(0deg)   scale(1);    }
+          25%  { transform: rotateX(15deg)  rotateY(20deg)  scale(1.06); }
+          50%  { transform: rotateX(-10deg) rotateY(-15deg) scale(0.96); }
+          75%  { transform: rotateX(12deg)  rotateY(10deg)  scale(1.04); }
+          100% { transform: rotateX(0deg)   rotateY(0deg)   scale(1);    }
         }
-        @keyframes dice-neon-glow {
-          0%, 100% { 
-            opacity: 0.85;
-            transform: scale(1);
-          }
-          50% { 
-            opacity: 1;
-            transform: scale(1.02);
-          }
+        @keyframes cube-float {
+          0%, 100% { transform: translateY(0px);   }
+          50%       { transform: translateY(-3px);  }
         }
       `}</style>
     </div>

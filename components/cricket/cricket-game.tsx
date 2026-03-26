@@ -113,7 +113,7 @@ export function CricketGame() {
         {/* Bottom section: score left | This Over + Dice | score right */}
         <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 shrink-0 sm:max-w-xl">
           <ThisOver state={state} />
-          <div className="flex w-full items-center justify-between gap-2 px-1">
+          <div className="flex w-full items-start justify-between gap-2 px-1">
             {/* Left scores: team score + batter */}
             <div className="flex flex-col gap-1 items-start">
               <ScoreboardTeam state={state} />
