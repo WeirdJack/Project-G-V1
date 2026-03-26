@@ -10,22 +10,18 @@ type UmpireSignal =
   | "six"
   | "wide"
   | "no-ball"
-  | "byes"
-  | "leg-byes"
   | "runs"
   | "dot"
 
 const SIGNAL_LABELS: Record<UmpireSignal, { label: string; color: string; bg: string }> = {
-  idle:       { label: "",         color: "#a0b8c0", bg: "transparent"  },
-  out:        { label: "OUT!",     color: "#ff4444", bg: "#ff444422"    },
-  boundary:   { label: "FOUR!",    color: "#ffd700", bg: "#ffd70022"    },
-  six:        { label: "SIX!",     color: "#ffaa00", bg: "#ffaa0022"    },
-  wide:       { label: "WIDE",     color: "#cc77ff", bg: "#cc77ff22"    },
-  "no-ball":  { label: "NO BALL",  color: "#aa66ff", bg: "#aa66ff22"    },
-  byes:       { label: "BYES",     color: "#66bbff", bg: "#66bbff22"    },
-  "leg-byes": { label: "LEG BYES", color: "#66bbff", bg: "#66bbff22"    },
-  runs:       { label: "RUNS",     color: "#66ffcc", bg: "#66ffcc22"    },
-  dot:        { label: "DOT",      color: "#667788", bg: "#66778822"    },
+  idle:      { label: "",         color: "#a0b8c0", bg: "transparent" },
+  out:       { label: "OUT!",     color: "#ff4444", bg: "#ff444422"   },
+  boundary:  { label: "FOUR!",    color: "#ffd700", bg: "#ffd70022"   },
+  six:       { label: "SIX!",     color: "#ffaa00", bg: "#ffaa0022"   },
+  wide:      { label: "WIDE",     color: "#cc77ff", bg: "#cc77ff22"   },
+  "no-ball": { label: "NO BALL",  color: "#aa66ff", bg: "#aa66ff22"   },
+  runs:      { label: "RUNS",     color: "#66ffcc", bg: "#66ffcc22"   },
+  dot:       { label: "DOT",      color: "#667788", bg: "#66778822"   },
 }
 
 function squareTypeToSignal(type: SquareType | null): UmpireSignal {
@@ -48,72 +44,92 @@ interface UmpireProps {
   state: GameState
 }
 
+// Arm path endpoints per signal
+const ARM_PATHS: Record<UmpireSignal, { left: string; right: string }> = {
+  idle:      { left: "M10,18 L6,28",   right: "M18,18 L22,28"  },
+  out:       { left: "M10,18 L6,28",   right: "M18,18 L22,8"   },
+  boundary:  { left: "M10,18 L4,18",   right: "M18,18 L24,18"  },
+  six:       { left: "M10,18 L6,10",   right: "M18,18 L22,10"  },
+  wide:      { left: "M10,18 L2,18",   right: "M18,18 L26,18"  },
+  "no-ball": { left: "M10,18 L6,28",   right: "M18,18 L26,18"  },
+  runs:      { left: "M10,18 L6,28",   right: "M18,18 L22,14"  },
+  dot:       { left: "M10,18 L6,28",   right: "M18,18 L22,28"  },
+}
+
 function UmpireSVG({ signal }: { signal: UmpireSignal }) {
   const isActive = signal !== "idle" && signal !== "dot"
-  const color = isActive ? SIGNAL_LABELS[signal].color : "#a0b8c0"
-
-  // Arm positions per signal
-  const armConfigs: Record<UmpireSignal, { left: string; right: string }> = {
-    idle:       { left: "M25,42 L20,58",   right: "M35,42 L40,58"  },
-    out:        { left: "M25,42 L20,58",   right: "M35,42 L38,24"  },
-    boundary:   { left: "M25,42 L14,46",   right: "M35,42 L46,46"  },
-    six:        { left: "M25,42 L20,26",   right: "M35,42 L40,26"  },
-    wide:       { left: "M25,42 L12,42",   right: "M35,42 L48,42"  },
-    "no-ball":  { left: "M25,42 L20,58",   right: "M35,42 L48,42"  },
-    byes:       { left: "M25,42 L20,58",   right: "M35,42 L40,26"  },
-    "leg-byes": { left: "M25,42 L20,58",   right: "M35,42 L42,54"  },
-    runs:       { left: "M25,42 L20,58",   right: "M35,42 L44,48"  },
-    dot:        { left: "M25,42 L20,58",   right: "M35,42 L40,58"  },
-  }
-
-  const arms = armConfigs[signal]
+  const signalColor = SIGNAL_LABELS[signal].color
+  const arms = ARM_PATHS[signal]
 
   return (
-    <svg
-      viewBox="0 0 60 90"
-      width="44"
-      height="66"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label={`Umpire signalling ${signal}`}
-      role="img"
-    >
+    <svg viewBox="0 0 28 52" width="40" height="74" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       {/* Head */}
-      <circle cx="30" cy="14" r="10" fill="#d4a96a" stroke="#5a3a1a" strokeWidth="1.5" />
+      <circle cx="14" cy="7" r="6" fill="#d4a96a" stroke="#555" strokeWidth="1" />
       {/* Hat */}
-      <ellipse cx="30" cy="6" rx="12" ry="3" fill="#f5f0dc" stroke="#5a3a1a" strokeWidth="1.2" />
-      <rect x="22" y="2" width="16" height="6" rx="2" fill="#f5f0dc" stroke="#5a3a1a" strokeWidth="1.2" />
+      <rect x="8" y="1" width="12" height="5" rx="2" fill="#f5f0dc" stroke="#555" strokeWidth="1" />
+      <rect x="6" y="4" width="16" height="2" rx="1" fill="#f5f0dc" stroke="#555" strokeWidth="0.5" />
       {/* Eyes */}
-      <circle cx="26" cy="13" r="1.5" fill="#3a2a1a" />
-      <circle cx="34" cy="13" r="1.5" fill="#3a2a1a" />
+      <circle cx="11" cy="7" r="1" fill="#333" />
+      <circle cx="17" cy="7" r="1" fill="#333" />
       {/* Body */}
-      <rect x="20" y="24" width="20" height="26" rx="4" fill="#f5f0dc" stroke="#5a3a1a" strokeWidth="1.5" />
-      {/* Buttons */}
-      <circle cx="30" cy="30" r="1.2" fill="#aaa" />
-      <circle cx="30" cy="37" r="1.2" fill="#aaa" />
-      <circle cx="30" cy="44" r="1.2" fill="#aaa" />
+      <rect x="8" y="14" width="12" height="16" rx="3" fill="#f5f0dc" stroke="#555" strokeWidth="1" />
       {/* Left arm */}
-      <path d={arms.left} stroke="#d4a96a" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-      <path d={arms.left} stroke="#f5f0dc" strokeWidth="3" strokeLinecap="round" fill="none" />
+      <line
+        x1={arms.left.split("L")[0].replace("M", "").split(",")[0]}
+        y1={arms.left.split("L")[0].replace("M", "").split(",")[1]}
+        x2={arms.left.split("L")[1].split(",")[0]}
+        y2={arms.left.split("L")[1].split(",")[1]}
+        stroke="#f5f0dc"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <line
+        x1={arms.left.split("L")[0].replace("M", "").split(",")[0]}
+        y1={arms.left.split("L")[0].replace("M", "").split(",")[1]}
+        x2={arms.left.split("L")[1].split(",")[0]}
+        y2={arms.left.split("L")[1].split(",")[1]}
+        stroke="#555"
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
       {/* Right arm */}
-      <path d={arms.right} stroke="#d4a96a" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-      <path d={arms.right} stroke={isActive ? color : "#f5f0dc"} strokeWidth="3" strokeLinecap="round" fill="none" />
-      {/* Trousers */}
-      <rect x="20" y="48" width="9" height="22" rx="3" fill="#3a4a6a" stroke="#1a2a4a" strokeWidth="1" />
-      <rect x="31" y="48" width="9" height="22" rx="3" fill="#3a4a6a" stroke="#1a2a4a" strokeWidth="1" />
+      <line
+        x1={arms.right.split("L")[0].replace("M", "").split(",")[0]}
+        y1={arms.right.split("L")[0].replace("M", "").split(",")[1]}
+        x2={arms.right.split("L")[1].split(",")[0]}
+        y2={arms.right.split("L")[1].split(",")[1]}
+        stroke={isActive ? signalColor : "#f5f0dc"}
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <line
+        x1={arms.right.split("L")[0].replace("M", "").split(",")[0]}
+        y1={arms.right.split("L")[0].replace("M", "").split(",")[1]}
+        x2={arms.right.split("L")[1].split(",")[0]}
+        y2={arms.right.split("L")[1].split(",")[1]}
+        stroke="#555"
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
+      {/* Legs */}
+      <rect x="9" y="30" width="4" height="14" rx="2" fill="#2a3a5a" stroke="#555" strokeWidth="1" />
+      <rect x="15" y="30" width="4" height="14" rx="2" fill="#2a3a5a" stroke="#555" strokeWidth="1" />
       {/* Shoes */}
-      <ellipse cx="24" cy="72" rx="7" ry="3" fill="#1a1a2a" />
-      <ellipse cx="36" cy="72" rx="7" ry="3" fill="#1a1a2a" />
+      <ellipse cx="11" cy="45" rx="5" ry="2.5" fill="#111" />
+      <ellipse cx="17" cy="45" rx="5" ry="2.5" fill="#111" />
     </svg>
   )
 }
 
 export function Umpire({ state }: UmpireProps) {
   const [signal, setSignal] = useState<UmpireSignal>("idle")
+  const [animKey, setAnimKey] = useState(0)
 
   useEffect(() => {
     if (state.lastSquareLanded) {
       const s = squareTypeToSignal(state.lastSquareLanded.type)
       setSignal(s)
+      setAnimKey((k) => k + 1)
     } else {
       const t = setTimeout(() => setSignal("idle"), 300)
       return () => clearTimeout(t)
@@ -126,10 +142,8 @@ export function Umpire({ state }: UmpireProps) {
   return (
     <div className="flex flex-col items-center gap-0.5">
       <div
-        style={{
-          transition: "transform 0.2s ease",
-          transform: isActive ? "scale(1.08)" : "scale(1)",
-        }}
+        key={animKey}
+        style={{ animation: isActive ? "umpire-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) both" : "none" }}
       >
         <UmpireSVG signal={signal} />
       </div>
@@ -145,6 +159,13 @@ export function Umpire({ state }: UmpireProps) {
           Umpire
         </span>
       )}
+      <style jsx>{`
+        @keyframes umpire-pop {
+          0%   { transform: scale(0.85); }
+          60%  { transform: scale(1.1);  }
+          100% { transform: scale(1);    }
+        }
+      `}</style>
     </div>
   )
 }
