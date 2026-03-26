@@ -68,8 +68,6 @@ export function CricketGame() {
   // Batting phase - main game UI
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background" onClick={unlockAudio}>
-      {/* Duck walk overlay (golden duck) */}
-      <DuckWalk state={state} soundEnabled={soundEnabled} />
       {/* Top bar */}
       <header className="flex shrink-0 items-center justify-between border-b border-border/30 px-4 py-2">
         <h1 className="font-sans text-sm font-semibold text-foreground">
@@ -105,11 +103,13 @@ export function CricketGame() {
           </div>
         </div>
 
-        {/* Game board in the middle — field bg lives here */}
+        {/* Game board in the middle — duck walk + field bg lives here */}
         <div className="flex items-center justify-center w-full min-h-0 shrink-0 sm:flex-1">
           <div className="relative w-full max-w-[min(100%,60vh)] sm:max-w-[min(100%,65vh)]">
             <CricketFieldBg />
             <GameBoard state={state} />
+            {/* Duck walk overlay (golden duck) — sits over board */}
+            <DuckWalk state={state} soundEnabled={soundEnabled} />
           </div>
         </div>
 
