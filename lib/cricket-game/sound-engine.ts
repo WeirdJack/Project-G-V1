@@ -141,25 +141,62 @@ function playTriple() {
   playTone(1000, 0.09, "triangle", 0.12, 0.2)
 }
 
+function playStadiumCrowd(duration: number, delay = 0, peak = 0.10) {
+  // Stadium crowd roar: layered filtered noise bursts that swell and fade
+  const ctx = getCtx()
+  const bufferSize = Math.ceil(ctx.sampleRate * (duration + delay + 0.1))
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1
+
+  const src = ctx.createBufferSource()
+  src.buffer = buffer
+
+  // Low-pass filter to make it sound like a distant crowd
+  const lpf = ctx.createBiquadFilter()
+  lpf.type = "lowpass"
+  lpf.frequency.value = 1200
+  lpf.Q.value = 0.8
+
+  // Band-pass layer for "vocal" frequency range
+  const bpf = ctx.createBiquadFilter()
+  bpf.type = "bandpass"
+  bpf.frequency.value = 600
+  bpf.Q.value = 0.5
+
+  const g = ctx.createGain()
+  // Swell up then sustain and fade
+  g.gain.setValueAtTime(0.001, ctx.currentTime + delay)
+  g.gain.linearRampToValueAtTime(peak, ctx.currentTime + delay + 0.25)
+  g.gain.setValueAtTime(peak, ctx.currentTime + delay + duration * 0.6)
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration)
+
+  src.connect(lpf)
+  lpf.connect(bpf)
+  bpf.connect(g)
+  g.connect(ctx.destination)
+  src.start(ctx.currentTime + delay)
+}
+
 function playBoundary() {
-  // Satisfying crack + rising fanfare
+  // Satisfying crack + rising fanfare + stadium crowd cheer
   playNoise(0.08, 0.15)
   playTone(523, 0.2, "square", 0.1, 0.05)
   playTone(659, 0.2, "square", 0.1, 0.15)
   playTone(784, 0.3, "square", 0.12, 0.25)
-  // Crowd murmur
-  playNoise(0.6, 0.04, 0.2)
+  // Stadium crowd swell
+  playStadiumCrowd(1.8, 0.1, 0.09)
 }
 
 function playSix() {
-  // Big hit crack + epic ascending fanfare + crowd roar
+  // Big hit crack + epic ascending fanfare + massive crowd roar
   playNoise(0.1, 0.2)
   playTone(523, 0.15, "sawtooth", 0.08, 0.05)
   playTone(659, 0.15, "sawtooth", 0.08, 0.13)
   playTone(784, 0.15, "sawtooth", 0.08, 0.21)
   playTone(1047, 0.4, "sawtooth", 0.1, 0.29)
-  // Crowd roar
-  playNoise(0.8, 0.06, 0.25)
+  // Big stadium crowd roar - louder and longer for a six
+  playStadiumCrowd(2.8, 0.15, 0.14)
 }
 
 function playWide() {

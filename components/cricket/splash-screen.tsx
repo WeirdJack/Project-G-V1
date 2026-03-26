@@ -7,160 +7,350 @@ interface SplashScreenProps {
   onComplete: () => void
 }
 
+// ── Pixel cricket batter SVG ────────────────────────────────────────────────
+
+function PixelBatter() {
+  return (
+    <svg
+      viewBox="0 0 48 72"
+      width="64"
+      height="96"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      style={{ imageRendering: "pixelated" }}
+    >
+      {/* Helmet */}
+      <rect x="14" y="2" width="20" height="4" fill="#e8e0b0" />
+      <rect x="12" y="6" width="24" height="10" fill="#e8e0b0" />
+      <rect x="10" y="8" width="4" height="6" fill="#e8e0b0" />
+      {/* Helmet grille */}
+      <rect x="10" y="12" width="6" height="2" fill="#888" />
+      <rect x="10" y="14" width="6" height="2" fill="#aaa" />
+      {/* Face */}
+      <rect x="14" y="16" width="16" height="8" fill="#d4a96a" />
+      <rect x="16" y="18" width="4" height="2" fill="#1a1a1a" /> {/* Left eye */}
+      <rect x="26" y="18" width="4" height="2" fill="#1a1a1a" /> {/* Right eye */}
+      {/* Body / whites */}
+      <rect x="12" y="24" width="24" height="28" fill="#f0ece0" />
+      {/* Team color stripe */}
+      <rect x="12" y="28" width="24" height="4" fill="#2266cc" />
+      {/* Left arm (holding bat at guard) */}
+      <rect x="4" y="24" width="8" height="6" fill="#d4a96a" />
+      <rect x="2" y="30" width="8" height="6" fill="#d4a96a" />
+      {/* Right arm */}
+      <rect x="36" y="24" width="8" height="6" fill="#f0ece0" />
+      <rect x="38" y="30" width="8" height="6" fill="#f0ece0" />
+      {/* Bat — held at guard position */}
+      <rect x="0" y="28" width="4" height="20" fill="#c8a050" />
+      <rect x="0" y="46" width="6" height="10" fill="#c8a050" />
+      {/* Trousers */}
+      <rect x="12" y="52" width="10" height="16" fill="#f0ece0" />
+      <rect x="26" y="52" width="10" height="16" fill="#f0ece0" />
+      {/* Boots */}
+      <rect x="10" y="66" width="12" height="4" fill="#222" />
+      <rect x="26" y="66" width="12" height="4" fill="#222" />
+      {/* Pads */}
+      <rect x="12" y="52" width="10" height="14" fill="#e8e4d0" />
+      <rect x="26" y="52" width="10" height="14" fill="#e8e4d0" />
+      <rect x="13" y="54" width="8" height="2" fill="#ccc" />
+      <rect x="27" y="54" width="8" height="2" fill="#ccc" />
+      <rect x="13" y="58" width="8" height="2" fill="#ccc" />
+      <rect x="27" y="58" width="8" height="2" fill="#ccc" />
+      <rect x="13" y="62" width="8" height="2" fill="#ccc" />
+      <rect x="27" y="62" width="8" height="2" fill="#ccc" />
+    </svg>
+  )
+}
+
+// ── Pixel wicket SVG ─────────────────────────────────────────────────────────
+
+function PixelWickets() {
+  return (
+    <svg
+      viewBox="0 0 64 40"
+      width="80"
+      height="50"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      style={{ imageRendering: "pixelated" }}
+    >
+      {[12, 32, 52].map((x) => (
+        <g key={x}>
+          <rect x={x - 2} y="8" width="4" height="24" fill="#d4c080" />
+          <rect x={x - 4} y="6" width="8" height="4" fill="#d4c080" />
+        </g>
+      ))}
+      {/* Bails */}
+      <rect x="8" y="8" width="12" height="2" fill="#ffcc00" />
+      <rect x="42" y="8" width="12" height="2" fill="#ffcc00" />
+      {/* Ground */}
+      <rect x="0" y="32" width="64" height="4" fill="#2a4a1a" />
+      <rect x="0" y="32" width="64" height="2" fill="#3a6a2a" />
+    </svg>
+  )
+}
+
+// ── Pixel cricket ball ────────────────────────────────────────────────────────
+
+function PixelBall({ x, y, size = 14 }: { x: number; y: number; size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      width={size}
+      height={size}
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ position: "absolute", left: x, top: y, imageRendering: "pixelated" }}
+      aria-hidden="true"
+    >
+      <circle cx="10" cy="10" r="8" fill="#cc2222" />
+      <path d="M5,7 Q8,10 5,13" stroke="white" strokeWidth="1.5" fill="none" />
+      <path d="M15,7 Q12,10 15,13" stroke="white" strokeWidth="1.5" fill="none" />
+    </svg>
+  )
+}
+
+// ── Star field background ─────────────────────────────────────────────────────
+
+const STARS = Array.from({ length: 60 }, (_, i) => ({
+  x: (i * 137.508) % 100,
+  y: (i * 97.31) % 100,
+  size: i % 5 === 0 ? 2 : 1,
+  opacity: 0.3 + (i % 4) * 0.15,
+}))
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [phase, setPhase] = useState<"enter" | "hold" | "ready" | "exit">("enter")
   const [hasInteracted, setHasInteracted] = useState(false)
+  const [blinkOn, setBlinkOn] = useState(true)
+  const [ballPos, setBallPos] = useState(0)
 
   useEffect(() => {
-    // Enter animation
     const holdTimer = setTimeout(() => setPhase("hold"), 100)
-    
-    // Show "tap to start" after animation completes
-    const readyTimer = setTimeout(() => setPhase("ready"), 1500)
-
+    const readyTimer = setTimeout(() => setPhase("ready"), 1200)
     return () => {
       clearTimeout(holdTimer)
       clearTimeout(readyTimer)
     }
   }, [])
 
-  // Handle tap to start - this MUST be synchronous with user gesture for iOS audio
+  // Blink "PRESS START"
+  useEffect(() => {
+    if (phase !== "ready") return
+    const id = setInterval(() => setBlinkOn((v) => !v), 600)
+    return () => clearInterval(id)
+  }, [phase])
+
+  // Animate ball bouncing left-right
+  useEffect(() => {
+    let frame: number
+    let t = 0
+    function tick() {
+      t += 0.025
+      setBallPos(t)
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
   const handleTap = useCallback(() => {
     if (hasInteracted || phase === "exit") return
     setHasInteracted(true)
-    
-    // Unlock audio SYNCHRONOUSLY in the tap handler (required for iOS physical devices)
     unlockAudio()
-    
-    // Play sound immediately after unlock
     playSound("stumps-hit")
-    
-    // Start exit animation
     setPhase("exit")
-    
-    // Complete after exit animation
-    setTimeout(() => onComplete(), 700)
+    setTimeout(() => onComplete(), 600)
   }, [hasInteracted, phase, onComplete])
+
+  const ballX = Math.round(50 + 40 * Math.sin(ballPos))
+  const ballY = Math.round(24 + 16 * Math.abs(Math.sin(ballPos * 1.5)))
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background cursor-pointer"
+      className="fixed inset-0 z-50 cursor-pointer select-none overflow-hidden"
       onClick={handleTap}
       onTouchStart={handleTap}
       style={{
+        backgroundColor: "#050a14",
         opacity: phase === "exit" ? 0 : 1,
-        transition: "opacity 0.7s ease-out",
+        transition: "opacity 0.6s ease-out",
       }}
     >
-      {/* Radial glow behind logo */}
+      {/* Star field */}
+      <div className="absolute inset-0">
+        {STARS.map((star, i) => (
+          <div
+            key={i}
+            className="absolute rounded-sm"
+            style={{
+              left: `${star.x}%`,
+              top: `${star.y}%`,
+              width: star.size,
+              height: star.size,
+              backgroundColor: "#ffffff",
+              opacity: star.opacity,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* CRT scanlines overlay */}
       <div
-        className="absolute"
+        className="pointer-events-none absolute inset-0"
         style={{
-          width: 300,
-          height: 300,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, oklch(0.75 0.18 145 / 0.15) 0%, transparent 70%)",
-          opacity: phase === "enter" ? 0 : 1,
-          transform: phase === "enter" ? "scale(0.5)" : "scale(1)",
-          transition: "opacity 1s ease-out, transform 1s ease-out",
+          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px)",
+          zIndex: 10,
         }}
       />
 
-      {/* Cricket ball icon */}
+      {/* CRT vignette */}
       <div
+        className="pointer-events-none absolute inset-0"
         style={{
-          opacity: phase === "enter" ? 0 : 1,
-          transform: phase === "enter" ? "scale(0.3) rotate(-180deg)" : "scale(1) rotate(0deg)",
-          transition: "opacity 0.6s ease-out, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+          background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%)",
+          zIndex: 11,
         }}
-      >
-        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-          {/* Ball */}
-          <circle cx="40" cy="40" r="36" fill="#cc3333" />
-          <circle cx="40" cy="40" r="36" fill="url(#ballGrad)" />
-          {/* Seam */}
-          <path
-            d="M20,25 Q30,40 20,55"
-            stroke="#fff"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <path
-            d="M60,25 Q50,40 60,55"
-            stroke="#fff"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-          />
-          {/* Stitch marks */}
-          {[28, 33, 38, 43, 48, 53].map((y) => (
-            <g key={`l${y}`}>
-              <line x1="17" y1={y - 1} x2="21" y2={y + 1} stroke="#fff" strokeWidth="1" strokeLinecap="round" />
-            </g>
-          ))}
-          {[28, 33, 38, 43, 48, 53].map((y) => (
-            <g key={`r${y}`}>
-              <line x1="59" y1={y - 1} x2="63" y2={y + 1} stroke="#fff" strokeWidth="1" strokeLinecap="round" />
-            </g>
-          ))}
-          {/* Shine */}
-          <ellipse cx="30" cy="28" rx="8" ry="5" fill="rgba(255,255,255,0.15)" transform="rotate(-20,30,28)" />
-          <defs>
-            <radialGradient id="ballGrad" cx="35%" cy="35%">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
-              <stop offset="100%" stopColor="transparent" />
-            </radialGradient>
-          </defs>
-        </svg>
-      </div>
+      />
 
-      {/* Title */}
-      <h1
-        className="mt-6 font-sans text-5xl font-bold tracking-tight text-foreground sm:text-6xl"
-        style={{
-          opacity: phase === "enter" ? 0 : 1,
-          transform: phase === "enter" ? "translateY(20px)" : "translateY(0)",
-          transition: "opacity 0.6s ease-out 0.3s, transform 0.6s ease-out 0.3s",
-        }}
-      >
-        Kriklu
-      </h1>
+      {/* Content */}
+      <div className="relative z-20 flex h-full flex-col items-center justify-between px-4 py-8">
 
-      {/* Tagline */}
-      <p
-        className="mt-2 font-sans text-sm text-muted-foreground"
-        style={{
-          opacity: phase === "enter" ? 0 : 1,
-          transform: phase === "enter" ? "translateY(12px)" : "translateY(0)",
-          transition: "opacity 0.5s ease-out 0.6s, transform 0.5s ease-out 0.6s",
-        }}
-      >
-        Cricket Reimagined: The Flat-Lay Edition
-      </p>
-
-      {/* Tap to start prompt */}
-      <div
-        className="mt-8"
-        style={{
-          opacity: phase === "ready" ? 1 : 0,
-          transition: "opacity 0.4s ease-out",
-        }}
-      >
-        <p
-          className="font-sans text-sm text-primary"
-          style={{ animation: phase === "ready" ? "splash-pulse 1.5s ease-in-out infinite" : "none" }}
+        {/* Top bar - like a video game company logo */}
+        <div
+          className="flex items-center gap-2 rounded px-3 py-1"
+          style={{
+            opacity: phase === "enter" ? 0 : 1,
+            transition: "opacity 0.4s ease-out 0.1s",
+            backgroundColor: "#1a2a1a",
+            border: "1px solid #2a4a2a",
+          }}
         >
-          Tap to Start
-        </p>
-      </div>
+          <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: "#6a9a5a" }}>
+            Kriklu Studios
+          </span>
+          <span className="font-mono text-[9px]" style={{ color: "#3a5a3a" }}>presents</span>
+        </div>
 
-      <style jsx>{`
-        @keyframes splash-pulse {
-          0%, 100% { opacity: 0.7; }
-          50% { opacity: 1; }
-        }
-      `}</style>
+        {/* Center block */}
+        <div
+          className="flex flex-col items-center gap-6"
+          style={{
+            opacity: phase === "enter" ? 0 : 1,
+            transform: phase === "enter" ? "translateY(20px)" : "translateY(0)",
+            transition: "opacity 0.6s ease-out 0.3s, transform 0.6s ease-out 0.3s",
+          }}
+        >
+          {/* Animated ball */}
+          <div className="relative h-16 w-32">
+            <PixelBall x={ballX - 7} y={ballY - 7} size={14} />
+            {/* Shadow under ball */}
+            <div
+              className="absolute bottom-0 rounded-full"
+              style={{
+                left: ballX - 6,
+                width: 12,
+                height: 3,
+                backgroundColor: "#000",
+                opacity: 0.3 + 0.4 * (1 - Math.abs(Math.sin(ballPos * 1.5))),
+              }}
+            />
+          </div>
+
+          {/* KRIKLU title — retro pixel style */}
+          <div className="flex flex-col items-center gap-0">
+            {/* Shadow */}
+            <div className="relative">
+              <h1
+                className="select-none font-mono font-black uppercase"
+                aria-hidden="true"
+                style={{
+                  fontSize: "clamp(3rem, 14vw, 5rem)",
+                  letterSpacing: "0.08em",
+                  color: "#1a4a1a",
+                  position: "absolute",
+                  top: 4,
+                  left: 4,
+                }}
+              >
+                KRIKLU
+              </h1>
+              <h1
+                className="select-none font-mono font-black uppercase"
+                style={{
+                  fontSize: "clamp(3rem, 14vw, 5rem)",
+                  letterSpacing: "0.08em",
+                  color: "#8fda6a",
+                  textShadow: "0 0 30px #4a9a2a, 0 0 60px #2a6a1a",
+                  position: "relative",
+                }}
+              >
+                KRIKLU
+              </h1>
+            </div>
+            {/* Subtitle bar */}
+            <div
+              className="mt-1 px-4 py-0.5"
+              style={{ backgroundColor: "#8fda6a", marginTop: 2 }}
+            >
+              <span
+                className="font-mono text-xs font-black uppercase tracking-widest"
+                style={{ color: "#0a1208" }}
+              >
+                Cricket Board Game
+              </span>
+            </div>
+          </div>
+
+          {/* Wickets + batter scene */}
+          <div className="flex items-end gap-3">
+            <PixelWickets />
+            <PixelBatter />
+          </div>
+
+          {/* Press start */}
+          <div
+            className="font-mono text-sm font-bold uppercase tracking-widest"
+            style={{
+              color: "#ffcc00",
+              opacity: phase === "ready" && blinkOn ? 1 : 0,
+              transition: "opacity 0.15s",
+              textShadow: "0 0 10px #ffcc0088",
+              minHeight: "1.4em",
+            }}
+          >
+            &#9654; Press Start &#9664;
+          </div>
+        </div>
+
+        {/* Bottom bar — retro game credits */}
+        <div
+          className="flex flex-col items-center gap-1"
+          style={{
+            opacity: phase === "enter" ? 0 : 1,
+            transition: "opacity 0.5s ease-out 0.8s",
+          }}
+        >
+          <div className="flex gap-6">
+            {["1 PLAYER", "2 PLAYERS"].map((label) => (
+              <span
+                key={label}
+                className="font-mono text-[10px] uppercase tracking-widest"
+                style={{ color: "#3a6a5a" }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+          <span
+            className="font-mono text-[9px] uppercase tracking-widest"
+            style={{ color: "#2a4a2a" }}
+          >
+            &copy; 2025 Kriklu Games &mdash; All rights reserved
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
