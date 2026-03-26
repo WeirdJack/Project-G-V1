@@ -9,6 +9,7 @@ import { unlockAudio } from "@/lib/cricket-game/sound-engine"
 interface DiceProps {
   state: GameState
   onRoll: () => void
+  autoComplete?: boolean
 }
 
 const DOT_POSITIONS: Record<number, [number, number][]> = {
@@ -68,7 +69,7 @@ function Face({
   )
 }
 
-export function Dice({ state, onRoll }: DiceProps) {
+export function Dice({ state, onRoll, autoComplete = false }: DiceProps) {
   const { dice } = state
   const isCpu = isCpuBatting(state)
   const canRoll = !dice.isRolling && !state.tokenAnimation.isAnimating && !state.flashEffect && !isCpu
@@ -76,6 +77,19 @@ export function Dice({ state, onRoll }: DiceProps) {
 
   const [tumbleFace, setTumbleFace] = useState(1)
   const tumbleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const autoRollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Auto-complete: human is batting, no active animation — auto-roll after short delay
+  useEffect(() => {
+    if (!autoComplete || isCpu) return
+    if (!canRoll) return
+    autoRollRef.current = setTimeout(() => {
+      onRoll()
+    }, 300)
+    return () => {
+      if (autoRollRef.current) clearTimeout(autoRollRef.current)
+    }
+  }, [autoComplete, isCpu, canRoll, onRoll])
 
   useEffect(() => {
     if (dice.isRolling) {
@@ -164,9 +178,11 @@ export function Dice({ state, onRoll }: DiceProps) {
           ? "Rolling..."
           : isCpu
             ? "CPU is playing..."
-            : canRoll
-              ? "Roll to play"
-              : "\u00A0"}
+            : autoComplete
+              ? "Auto..."
+              : canRoll
+                ? "Roll to play"
+                : "\u00A0"}
       </p>
 
       <style jsx>{`

@@ -142,6 +142,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return INITIAL_STATE
     }
 
+    case "RESTART_SAME_CONFIG": {
+      // Re-run setup with same config — goes back to toss phase
+      const newState = createInitialState(state.config)
+      return newState
+    }
+
     default:
       return state
   }
@@ -237,6 +243,10 @@ export function useCricketGame() {
     dispatch({ type: "RESTART" })
   }, [])
 
+  const restartSameConfig = useCallback(() => {
+    dispatch({ type: "RESTART_SAME_CONFIG" })
+  }, [])
+
   return {
     state,
     startMatch,
@@ -244,5 +254,6 @@ export function useCricketGame() {
     rollDice: handleRollDice,
     startNextInnings,
     restart,
+    restartSameConfig,
   }
 }
