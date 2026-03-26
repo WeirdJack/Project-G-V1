@@ -98,7 +98,7 @@ export function CricketGame() {
       {/* Main game area - responsive spacing */}
       <div className="flex flex-1 flex-col items-center justify-start overflow-hidden gap-1.5 px-2 py-1 sm:justify-between sm:gap-2 sm:py-3">
         {/* Umpire + Commentary side by side at the top */}
-        <div className="flex w-full items-stretch justify-center gap-1 sm:gap-3 shrink-0">
+        <div className="flex w-full items-stretch justify-center gap-1 sm:gap-3 shrink-0 sm:max-w-xl">
           <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
           </div>
@@ -109,13 +109,15 @@ export function CricketGame() {
 
         {/* Game board in the middle with scoreboard inside */}
         <div className="flex items-center justify-center w-full min-h-0 shrink-0 sm:flex-1">
-          <GameBoard state={state}>
-            <Scoreboard state={state} />
-          </GameBoard>
+          <div className="w-full max-w-[min(100%,60vh)] sm:max-w-[min(100%,65vh)]">
+            <GameBoard state={state}>
+              <Scoreboard state={state} />
+            </GameBoard>
+          </div>
         </div>
 
         {/* Bottom section: This Over + Dice */}
-        <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 shrink-0 sm:max-w-xl">
           <ThisOver state={state} />
           <div className="flex items-center justify-center">
             <Dice state={state} onRoll={rollDice} />
