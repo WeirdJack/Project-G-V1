@@ -11,7 +11,7 @@ import { MatchSetup } from "./match-setup"
 import { TossOverlay } from "./toss-overlay"
 import { GameBoard } from "./game-board"
 import { Dice } from "./dice"
-import { Scoreboard, ThisOver } from "./scoreboard"
+import { ScoreboardTeam, ScoreboardTarget, ScoreboardBatter, ScoreboardBowler, ThisOver } from "./scoreboard"
 import { CommentaryFeed } from "./commentary-feed"
 import { Umpire } from "./umpire"
 import { InningsSummary } from "./innings-summary"
@@ -66,14 +66,9 @@ export function CricketGame() {
 
   // Batting phase - main game UI
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden" onClick={unlockAudio}>
-      {/* Animated cricket field background */}
-      <CricketFieldBg />
-
-      {/* Content above the background */}
-      <div className="relative z-10 flex h-full w-full flex-col">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background" onClick={unlockAudio}>
       {/* Top bar */}
-      <header className="flex shrink-0 items-center justify-between border-b border-white/10 bg-black/40 px-4 py-2 backdrop-blur-md">
+      <header className="flex shrink-0 items-center justify-between border-b border-border/30 px-4 py-2">
         <h1 className="font-sans text-sm font-semibold text-foreground">
           Kriklu
         </h1>
@@ -98,7 +93,7 @@ export function CricketGame() {
       {/* Main game area - responsive spacing */}
       <div className="flex flex-1 flex-col items-center justify-start overflow-hidden gap-1.5 px-2 py-1 sm:justify-between sm:gap-2 sm:py-3">
         {/* Umpire + Commentary side by side at the top */}
-        <div className="flex w-full items-stretch justify-center gap-1 sm:gap-3 shrink-0">
+        <div className="flex w-full items-stretch justify-center gap-1 sm:gap-3 shrink-0 sm:max-w-xl">
           <div className="flex shrink-0 flex-col items-center">
             <Umpire state={state} />
           </div>
@@ -107,21 +102,36 @@ export function CricketGame() {
           </div>
         </div>
 
-        {/* Game board in the middle with scoreboard inside */}
+        {/* Game board in the middle — field bg lives here */}
         <div className="flex items-center justify-center w-full min-h-0 shrink-0 sm:flex-1">
-          <GameBoard state={state}>
-            <Scoreboard state={state} />
-          </GameBoard>
-        </div>
-
-        {/* Bottom section: This Over + Dice */}
-        <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 shrink-0">
-          <ThisOver state={state} />
-          <div className="flex items-center justify-center">
-            <Dice state={state} onRoll={rollDice} />
+          <div className="relative w-full max-w-[min(100%,60vh)] sm:max-w-[min(100%,65vh)]">
+            <CricketFieldBg />
+            <GameBoard state={state} />
           </div>
         </div>
-      </div>
+
+        {/* Bottom section: score left | This Over + Dice | score right */}
+        <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 shrink-0 sm:max-w-xl">
+          <ThisOver state={state} />
+          <div className="flex w-full items-center justify-between gap-2 px-1">
+            {/* Left scores: team score + batter */}
+            <div className="flex flex-col gap-1 items-start">
+              <ScoreboardTeam state={state} />
+              <ScoreboardBatter state={state} />
+            </div>
+
+            {/* Center: Dice */}
+            <div className="flex shrink-0 items-center justify-center">
+              <Dice state={state} onRoll={rollDice} />
+            </div>
+
+            {/* Right scores: target/innings + bowler */}
+            <div className="flex flex-col gap-1 items-end">
+              <ScoreboardTarget state={state} />
+              <ScoreboardBowler state={state} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

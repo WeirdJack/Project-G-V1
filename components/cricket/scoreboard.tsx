@@ -8,7 +8,7 @@ interface ScoreboardProps {
   state: GameState
 }
 
-/* Top-Left: Team Score */
+/* Top-Left: Team Score — used beside dice row (left side) */
 export function ScoreboardTeam({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
   const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
@@ -16,7 +16,7 @@ export function ScoreboardTeam({ state }: ScoreboardProps) {
 
   return (
     <div 
-      className="absolute top-3 left-3 pointer-events-auto flex flex-col items-start rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
+      className="flex flex-col items-start rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border"
       style={{ borderColor: battingColor }}
     >
       <div className="flex items-center gap-1">
@@ -43,19 +43,18 @@ export function ScoreboardTeam({ state }: ScoreboardProps) {
   )
 }
 
-/* Top-Right: Target (only in 2nd innings) */
+/* Top-Right: Target/Innings — used beside dice row (right side) */
 export function ScoreboardTarget({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
   const isTest = state.config.overs === "test"
   
-  // Only show in 2nd innings when chasing
   if (state.currentInnings !== 2 || state.target === null) {
-  return (
-    <div className="absolute top-3 right-3 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border border-cyan-500/60">
-      <span className="font-sans text-[9px] text-muted-foreground">Innings</span>
-      <span className="font-mono text-sm font-bold text-foreground">{state.currentInnings}</span>
-    </div>
-  )
+    return (
+      <div className="flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border border-cyan-500/60">
+        <span className="font-sans text-[9px] text-muted-foreground">Innings</span>
+        <span className="font-mono text-sm font-bold text-foreground">{state.currentInnings}</span>
+      </div>
+    )
   }
 
   const remaining = state.target - batting.totalRuns + 1
@@ -64,7 +63,7 @@ export function ScoreboardTarget({ state }: ScoreboardProps) {
     : (state.config.overs as number) * 6 - (batting.overs * 6 + batting.balls)
 
   return (
-    <div className="absolute top-3 right-3 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border border-amber-500/70">
+    <div className="flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border border-amber-500/70">
       <span className="font-sans text-[9px] text-muted-foreground">Target</span>
       <span className="font-mono text-sm font-bold text-amber-400 leading-tight">
         {remaining > 0 ? `Need ${remaining}` : "Won!"}
@@ -78,7 +77,7 @@ export function ScoreboardTarget({ state }: ScoreboardProps) {
   )
 }
 
-/* Bottom-Left: Batter Info */
+/* Bottom-Left: Batter Info — used beside dice row (left side) */
 export function ScoreboardBatter({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
   const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
@@ -87,10 +86,9 @@ export function ScoreboardBatter({ state }: ScoreboardProps) {
 
   return (
     <div 
-      className="absolute bottom-3 left-3 pointer-events-auto flex flex-col items-start rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
+      className="flex flex-col items-start rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border"
       style={{ borderColor: battingColor }}
     >
-      {/* Striker */}
       {striker && !striker.isOut && (
         <div className="flex items-center gap-1.5">
           <span 
@@ -105,7 +103,6 @@ export function ScoreboardBatter({ state }: ScoreboardProps) {
           </span>
         </div>
       )}
-      {/* Non-striker */}
       {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
         <div className="flex items-center gap-1.5 opacity-60">
           <span className="font-sans text-[8px] text-muted-foreground truncate max-w-[40px]">
@@ -120,17 +117,14 @@ export function ScoreboardBatter({ state }: ScoreboardProps) {
   )
 }
 
-/* Bottom-Right: Bowler Info */
+/* Bottom-Right: Bowler Info — used beside dice row (right side) */
 export function ScoreboardBowler({ state }: ScoreboardProps) {
   const bowling = state[state.bowlingTeamKey]
   const bowlingColor = state.bowlingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
-  
-  // For now, show team name - we don't track individual bowlers yet
-  // In a full implementation, this would show current bowler stats
 
   return (
     <div 
-      className="absolute bottom-3 right-3 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
+      className="flex flex-col items-end rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border"
       style={{ borderColor: bowlingColor }}
     >
       <span className="font-sans text-[9px] text-muted-foreground">Bowling</span>
