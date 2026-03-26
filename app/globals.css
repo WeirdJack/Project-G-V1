@@ -102,15 +102,20 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
   body {
     @apply bg-background text-foreground;
+    height: 100%;
+    overflow: hidden;
     /* Safe area insets for mobile notches and status bars */
     padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
     padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
   }
-  
 }
 
 /* Android native app - ensure content doesn't overlap status bar */

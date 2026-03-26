@@ -65,7 +65,7 @@ export function CricketGame() {
 
   // Batting phase - main game UI
   return (
-    <div className="flex min-h-svh w-full flex-col bg-background" onClick={unlockAudio}>
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background" onClick={unlockAudio}>
       {/* Top bar */}
       <header className="flex shrink-0 items-center justify-between border-b border-border/30 px-4 py-2">
         <h1 className="font-sans text-sm font-semibold text-foreground">
