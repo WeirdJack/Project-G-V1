@@ -27,6 +27,7 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 interface MatchSetupProps {
   onStart: (config: MatchConfig) => void
   mode: GameMode
+  onQuit: () => void
 }
 
 // ── Role icon SVGs ──────────────────────────────────────────────────────────
@@ -145,7 +146,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export function MatchSetup({ onStart, mode }: MatchSetupProps) {
+export function MatchSetup({ onStart, mode, onQuit }: MatchSetupProps) {
   const [overs, setOvers] = useState<OversOption>(5)
   const [playersPerTeam, setPlayersPerTeam] = useState<number>(DEFAULT_PLAYERS_PER_TEAM)
   const [team1Name, setTeam1Name] = useState(DEFAULT_TEAM_NAMES.team1)
@@ -432,24 +433,37 @@ export function MatchSetup({ onStart, mode }: MatchSetupProps) {
             })}
           </div>
 
-          {/* Start button */}
-          <button
-            onClick={handleStart}
-            className="relative w-full overflow-hidden rounded-lg border py-3 font-mono text-sm font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{
-              borderColor: "#4a8a3a",
-              backgroundColor: "#1a3a12",
-              color: "#8fda6a",
-              boxShadow: "0 0 20px #3a7a2a22, inset 0 1px 0 #4a8a3a44",
-            }}
-          >
-            {/* Green shimmer line */}
-            <span
-              className="pointer-events-none absolute inset-0 rounded-lg"
-              style={{ background: "linear-gradient(180deg, #4a8a3a22 0%, transparent 60%)" }}
-            />
-            Toss the Coin
-          </button>
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={onQuit}
+              className="rounded-lg border px-5 py-3 font-mono text-sm font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                borderColor: "#7a2a2a",
+                backgroundColor: "#3a0a0a",
+                color: "#f87171",
+              }}
+            >
+              Back
+            </button>
+            <button
+              onClick={handleStart}
+              className="relative flex-1 overflow-hidden rounded-lg border py-3 font-mono text-sm font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                borderColor: "#4a8a3a",
+                backgroundColor: "#1a3a12",
+                color: "#8fda6a",
+                boxShadow: "0 0 20px #3a7a2a22, inset 0 1px 0 #4a8a3a44",
+              }}
+            >
+              {/* Green shimmer line */}
+              <span
+                className="pointer-events-none absolute inset-0 rounded-lg"
+                style={{ background: "linear-gradient(180deg, #4a8a3a22 0%, transparent 60%)" }}
+              />
+              Toss the Coin
+            </button>
+          </div>
         </div>
 
         {/* Board legend */}

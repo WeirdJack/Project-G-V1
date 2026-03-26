@@ -125,3 +125,4 @@ export type GameAction =
   | { type: "END_INNINGS" }
   | { type: "START_NEXT_INNINGS" }
   | { type: "RESTART" }
+  | { type: "RESTART_SAME_CONFIG" }

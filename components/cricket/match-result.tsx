@@ -8,6 +8,7 @@ import { getOverString } from "@/lib/cricket-game/game-engine"
 interface MatchResultProps {
   state: GameState
   onRestart: () => void
+  onQuit: () => void
 }
 
 interface Particle {
@@ -187,7 +188,7 @@ function ResultWickets({ hit }: { hit: boolean }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function MatchResult({ state, onRestart }: MatchResultProps) {
+export function MatchResult({ state, onRestart, onQuit }: MatchResultProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const particlesRef = useRef<Particle[]>([])
 
@@ -297,19 +298,32 @@ export function MatchResult({ state, onRestart }: MatchResultProps) {
           ))}
         </div>
 
-        {/* Play again */}
-        <button
-          onClick={onRestart}
-          className="w-full rounded-xl border py-3.5 font-mono text-sm font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98]"
-          style={{
-            borderColor: "#4a8a3a",
-            backgroundColor: "#1a3a12",
-            color: "#8fda6a",
-            boxShadow: "0 0 20px #3a7a2a22",
-          }}
-        >
-          Play Again
-        </button>
+        {/* Action buttons */}
+        <div className="flex gap-3 w-full">
+          <button
+            onClick={onRestart}
+            className="flex-1 rounded-xl border py-3.5 font-mono text-sm font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              borderColor: "#4a8a3a",
+              backgroundColor: "#1a3a12",
+              color: "#8fda6a",
+              boxShadow: "0 0 20px #3a7a2a22",
+            }}
+          >
+            Play Again
+          </button>
+          <button
+            onClick={onQuit}
+            className="rounded-xl border px-5 py-3.5 font-mono text-sm font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              borderColor: "#7a2a2a",
+              backgroundColor: "#3a0a0a",
+              color: "#f87171",
+            }}
+          >
+            Quit
+          </button>
+        </div>
 
         {/* Footer tag */}
         <p className="pb-2 font-mono text-[9px] uppercase tracking-widest" style={{ color: "#2a4a2a" }}>
