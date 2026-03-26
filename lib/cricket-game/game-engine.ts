@@ -6,6 +6,7 @@ import type {
   TossState,
   MatchConfig,
   TeamState,
+  PlayerRole,
 } from "./types"
 import {
   BOARD_SQUARES,
@@ -19,12 +20,14 @@ function createTeam(
   color: "team1" | "team2",
   teamIndex: 0 | 1,
   playerNames: string[],
-  playersPerTeam: number
+  playersPerTeam: number,
+  playerRoles: PlayerRole[]
 ): TeamState {
   const defaults = generateDefaultPlayerNames(teamIndex, playersPerTeam)
   const players: Player[] = Array.from({ length: playersPerTeam }, (_, i) => ({
     id: i,
     name: playerNames[i]?.trim() || defaults[i],
+    role: (playerRoles[i] as PlayerRole | undefined) ?? "bat",
     runs: 0,
     ballsFaced: 0,
     isOut: false,
@@ -41,6 +44,7 @@ function createTeam(
     balls: 0,
     currentBatsmanIndex: 0,
     nonStrikerIndex: playersPerTeam > 1 ? 1 : 0,
+    currentBowlerIndex: 0,
     extras: { wides: 0, noBalls: 0 },
     ballEvents: [],
   }
@@ -50,8 +54,8 @@ export function createInitialState(config: MatchConfig): GameState {
   return {
     phase: "toss",
     config,
-    team1: createTeam(config.team1Name, "team1", 0, config.team1PlayerNames, config.playersPerTeam),
-    team2: createTeam(config.team2Name, "team2", 1, config.team2PlayerNames, config.playersPerTeam),
+    team1: createTeam(config.team1Name, "team1", 0, config.team1PlayerNames, config.playersPerTeam, config.team1PlayerRoles ?? []),
+    team2: createTeam(config.team2Name, "team2", 1, config.team2PlayerNames, config.playersPerTeam, config.team2PlayerRoles ?? []),
     currentInnings: 1,
     battingTeamKey: "team1",
     bowlingTeamKey: "team2",
@@ -86,9 +90,13 @@ export function getSquareAt(position: number): Square {
 
 export function applySquareEffect(state: GameState): GameState {
   const battingTeam = { ...state[state.battingTeamKey] }
+  const bowlingTeam = { ...state[state.bowlingTeamKey] }
   const square = getSquareAt(state.tokenPosition)
 
   const currentBatsman = { ...battingTeam.players[battingTeam.currentBatsmanIndex] }
+  // Current bowler — a player from the bowling team
+  const currentBowler = bowlingTeam.players[bowlingTeam.currentBowlerIndex]
+  const bowlerName = currentBowler?.name ?? bowlingTeam.name
   let isLegalDelivery = true
 
   if (square.type === "wicket") {
@@ -144,6 +152,12 @@ export function applySquareEffect(state: GameState): GameState {
       const temp = battingTeam.currentBatsmanIndex
       battingTeam.currentBatsmanIndex = battingTeam.nonStrikerIndex
       battingTeam.nonStrikerIndex = temp
+      // Rotate to next bowler (skip current bowler — same bowler can't bowl consecutive overs)
+      const numPlayers = bowlingTeam.players.length
+      let nextBowler = (bowlingTeam.currentBowlerIndex + 1) % numPlayers
+      // Safety: don't exceed array bounds
+      if (nextBowler >= numPlayers) nextBowler = 0
+      bowlingTeam.currentBowlerIndex = nextBowler
     }
   }
 
@@ -155,6 +169,7 @@ export function applySquareEffect(state: GameState): GameState {
     ball: ballNumber,
     batsmanId: currentBatsman.id,
     batsmanName: currentBatsman.name,
+    bowlerName,
     squareType: square.type,
     runs: square.type === "wicket" ? 0 : square.runs,
     isExtra: square.isExtra,
@@ -172,6 +187,7 @@ export function applySquareEffect(state: GameState): GameState {
   return {
     ...state,
     [state.battingTeamKey]: battingTeam,
+    [state.bowlingTeamKey]: bowlingTeam,
     lastSquareLanded: square,
     flashEffect,
   }

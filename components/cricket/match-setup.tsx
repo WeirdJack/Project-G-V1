@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { MatchConfig, GameMode, OversOption } from "@/lib/cricket-game/types"
+import type { PlayerRole } from "@/lib/cricket-game/types"
 import {
   DEFAULT_TEAM_NAMES,
   OVERS_OPTIONS,
@@ -23,6 +24,386 @@ import {
   TEAM_2_COLOR,
 } from "@/lib/cricket-game/constants"
 import { ChevronDown, ChevronUp } from "lucide-react"
+
+interface MatchSetupProps {
+  onStart: (config: MatchConfig) => void
+}
+
+const ROLE_OPTIONS: { value: PlayerRole; label: string; short: string; color: string }[] = [
+  { value: "bat",  label: "Batter",        short: "BAT", color: "#4ade80" },
+  { value: "bowl", label: "Bowler",         short: "BWL", color: "#22d3ee" },
+  { value: "wk",   label: "Wicket-keeper", short: "WK",  color: "#fbbf24" },
+  { value: "all",  label: "All-rounder",   short: "AR",  color: "#c084fc" },
+]
+
+function RolePicker({
+  value,
+  onChange,
+}: {
+  value: PlayerRole
+  onChange: (r: PlayerRole) => void
+}) {
+  return (
+    <div className="flex gap-1">
+      {ROLE_OPTIONS.map((r) => (
+        <button
+          key={r.value}
+          type="button"
+          onClick={() => onChange(r.value)}
+          title={r.label}
+          className="rounded px-1.5 py-0.5 font-mono text-[9px] font-bold transition-all"
+          style={{
+            backgroundColor: value === r.value ? r.color + "33" : "transparent",
+            color: value === r.value ? r.color : "#666",
+            border: `1px solid ${value === r.value ? r.color : "#444"}`,
+          }}
+        >
+          {r.short}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export function MatchSetup({ onStart }: MatchSetupProps) {
+  const [mode, setMode] = useState<GameMode>("local")
+  const [overs, setOvers] = useState<OversOption>(5)
+  const [playersPerTeam, setPlayersPerTeam] = useState<number>(DEFAULT_PLAYERS_PER_TEAM)
+  const [team1Name, setTeam1Name] = useState(DEFAULT_TEAM_NAMES.team1)
+  const [team2Name, setTeam2Name] = useState(DEFAULT_TEAM_NAMES.team2)
+  const [team1PlayerNames, setTeam1PlayerNames] = useState<string[]>(() =>
+    generateDefaultPlayerNames(0, DEFAULT_PLAYERS_PER_TEAM)
+  )
+  const [team2PlayerNames, setTeam2PlayerNames] = useState<string[]>(() =>
+    generateDefaultPlayerNames(1, DEFAULT_PLAYERS_PER_TEAM)
+  )
+  const [team1PlayerRoles, setTeam1PlayerRoles] = useState<PlayerRole[]>(() =>
+    Array.from({ length: DEFAULT_PLAYERS_PER_TEAM }, (_, i) =>
+      i === 0 ? "wk" : i >= DEFAULT_PLAYERS_PER_TEAM - 3 ? "bowl" : "bat"
+    )
+  )
+  const [team2PlayerRoles, setTeam2PlayerRoles] = useState<PlayerRole[]>(() =>
+    Array.from({ length: DEFAULT_PLAYERS_PER_TEAM }, (_, i) =>
+      i === 0 ? "wk" : i >= DEFAULT_PLAYERS_PER_TEAM - 3 ? "bowl" : "bat"
+    )
+  )
+  const [showTeam1Players, setShowTeam1Players] = useState(false)
+  const [showTeam2Players, setShowTeam2Players] = useState(false)
+
+  const handlePlayersChange = useCallback(
+    (count: number) => {
+      setPlayersPerTeam(count)
+      setTeam1PlayerNames((prev) => {
+        const defaults = generateDefaultPlayerNames(0, count)
+        return Array.from({ length: count }, (_, i) => prev[i] ?? defaults[i])
+      })
+      setTeam2PlayerNames((prev) => {
+        const defaults = generateDefaultPlayerNames(1, count)
+        return Array.from({ length: count }, (_, i) => prev[i] ?? defaults[i])
+      })
+      setTeam1PlayerRoles((prev) =>
+        Array.from({ length: count }, (_, i) =>
+          (prev[i] as PlayerRole | undefined) ?? (i === 0 ? "wk" : i >= count - 3 ? "bowl" : "bat")
+        )
+      )
+      setTeam2PlayerRoles((prev) =>
+        Array.from({ length: count }, (_, i) =>
+          (prev[i] as PlayerRole | undefined) ?? (i === 0 ? "wk" : i >= count - 3 ? "bowl" : "bat")
+        )
+      )
+    },
+    []
+  )
+
+  const updatePlayerName = useCallback(
+    (team: 1 | 2, index: number, name: string) => {
+      if (team === 1) {
+        setTeam1PlayerNames((prev) => {
+          const next = [...prev]
+          next[index] = name
+          return next
+        })
+      } else {
+        setTeam2PlayerNames((prev) => {
+          const next = [...prev]
+          next[index] = name
+          return next
+        })
+      }
+    },
+    []
+  )
+
+  const updatePlayerRole = useCallback(
+    (team: 1 | 2, index: number, role: PlayerRole) => {
+      if (team === 1) {
+        setTeam1PlayerRoles((prev) => {
+          const next = [...prev]
+          next[index] = role
+          return next
+        })
+      } else {
+        setTeam2PlayerRoles((prev) => {
+          const next = [...prev]
+          next[index] = role
+          return next
+        })
+      }
+    },
+    []
+  )
+
+  function handleStart() {
+    onStart({
+      overs,
+      mode,
+      team1Name: team1Name.trim() || DEFAULT_TEAM_NAMES.team1,
+      team2Name: team2Name.trim() || DEFAULT_TEAM_NAMES.team2,
+      playersPerTeam,
+      team1PlayerNames,
+      team2PlayerNames,
+      team1PlayerRoles,
+      team2PlayerRoles,
+    })
+  }
+
+  function oversLabel(o: OversOption): string {
+    if (o === "test") return "Test Match"
+    return `${o} Overs`
+  }
+
+  function renderPlayerList(team: 1 | 2) {
+    const names = team === 1 ? team1PlayerNames : team2PlayerNames
+    const roles = team === 1 ? team1PlayerRoles : team2PlayerRoles
+
+    return (
+      <div className="flex max-h-64 flex-col gap-1.5 overflow-y-auto rounded-lg border border-border/30 bg-secondary/20 p-3">
+        {names.slice(0, playersPerTeam).map((name, i) => (
+          <div key={i} className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground">
+                {i + 1}.
+              </span>
+              <Input
+                value={name}
+                onChange={(e) => updatePlayerName(team, i, e.target.value)}
+                className="h-8 bg-secondary/50 font-sans text-xs"
+                maxLength={20}
+              />
+            </div>
+            <div className="ml-8">
+              <RolePicker
+                value={(roles[i] as PlayerRole | undefined) ?? "bat"}
+                onChange={(r) => updatePlayerRole(team, i, r)}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="flex w-full max-w-lg flex-col items-center gap-8">
+        {/* Title */}
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-balance text-center font-sans text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+            Kriklu
+          </h1>
+          <p className="text-center font-sans text-sm text-muted-foreground">
+            Cricket Reimagined: The Flat-Lay Edition
+          </p>
+        </div>
+
+        <Card className="w-full border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardContent className="flex flex-col gap-6 p-6">
+            {/* Game Mode */}
+            <div className="flex flex-col gap-2">
+              <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Game Mode
+              </Label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setMode("local")}
+                  className={`flex-1 rounded-lg border px-4 py-3 font-sans text-sm font-medium transition-all ${
+                    mode === "local"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                  }`}
+                >
+                  2 Players
+                </button>
+                <button
+                  onClick={() => setMode("cpu")}
+                  className={`flex-1 rounded-lg border px-4 py-3 font-sans text-sm font-medium transition-all ${
+                    mode === "cpu"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                  }`}
+                >
+                  vs CPU
+                </button>
+              </div>
+            </div>
+
+            {/* Overs + Players per team row */}
+            <div className="flex gap-4">
+              <div className="flex flex-1 flex-col gap-2">
+                <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Match Format
+                </Label>
+                <Select
+                  value={String(overs)}
+                  onValueChange={(v) => setOvers(v === "test" ? "test" : Number(v) as OversOption)}
+                >
+                  <SelectTrigger className="bg-secondary/50 font-mono">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OVERS_OPTIONS.map((o) => (
+                      <SelectItem key={String(o)} value={String(o)}>
+                        {oversLabel(o as OversOption)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-1 flex-col gap-2">
+                <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Players / Team
+                </Label>
+                <Select
+                  value={String(playersPerTeam)}
+                  onValueChange={(v) => handlePlayersChange(Number(v))}
+                >
+                  <SelectTrigger className="bg-secondary/50 font-mono">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PLAYERS_PER_TEAM_OPTIONS.map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n} Players
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Team 1 */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <span
+                    className="mr-2 inline-block h-2 w-2 rounded-full"
+                    style={{ backgroundColor: TEAM_1_COLOR }}
+                  />
+                  Team 1
+                </Label>
+                <Input
+                  value={team1Name}
+                  onChange={(e) => setTeam1Name(e.target.value)}
+                  placeholder={DEFAULT_TEAM_NAMES.team1}
+                  className="bg-secondary/50 font-sans"
+                  maxLength={20}
+                />
+              </div>
+              <button
+                onClick={() => setShowTeam1Players((v) => !v)}
+                className="flex items-center gap-1 font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {showTeam1Players ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                {showTeam1Players ? "Hide" : "Edit"} Players &amp; Roles
+              </button>
+              {showTeam1Players && renderPlayerList(1)}
+            </div>
+
+            {/* Team 2 */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                <Label className="font-sans text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <span
+                    className="mr-2 inline-block h-2 w-2 rounded-full"
+                    style={{ backgroundColor: TEAM_2_COLOR }}
+                  />
+                  {mode === "cpu" ? "CPU Team" : "Team 2"}
+                </Label>
+                <Input
+                  value={team2Name}
+                  onChange={(e) => setTeam2Name(e.target.value)}
+                  placeholder={DEFAULT_TEAM_NAMES.team2}
+                  className="bg-secondary/50 font-sans"
+                  maxLength={20}
+                  disabled={mode === "cpu"}
+                />
+              </div>
+              <button
+                onClick={() => setShowTeam2Players((v) => !v)}
+                className="flex items-center gap-1 font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {showTeam2Players ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                {showTeam2Players ? "Hide" : "Edit"} Players &amp; Roles
+              </button>
+              {showTeam2Players && renderPlayerList(2)}
+            </div>
+
+            {/* Role legend */}
+            <div className="flex flex-wrap gap-2">
+              {ROLE_OPTIONS.map((r) => (
+                <div key={r.value} className="flex items-center gap-1">
+                  <span
+                    className="inline-block rounded px-1 py-0.5 font-mono text-[9px] font-bold"
+                    style={{ backgroundColor: r.color + "22", color: r.color, border: `1px solid ${r.color}` }}
+                  >
+                    {r.short}
+                  </span>
+                  <span className="font-sans text-xs text-muted-foreground">{r.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Start Button */}
+            <Button
+              size="lg"
+              onClick={handleStart}
+              className="w-full bg-primary font-sans text-sm font-semibold uppercase tracking-wider text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(74,222,128,0.3)]"
+            >
+              Start Match
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Board legend */}
+        <div className="flex flex-wrap justify-center gap-3">
+          {[
+            { label: "1", color: "#2a5a5a" },
+            { label: "2", color: "#2a6a5a" },
+            { label: "3", color: "#2a7a5a" },
+            { label: "4", color: "#8a6a10" },
+            { label: "6", color: "#aa7a00" },
+            { label: "W", color: "#7a2a2a" },
+            { label: "Wd", color: "#5a3a7a" },
+            { label: "NB", color: "#4a2a6a" },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="flex items-center gap-1.5"
+            >
+              <span
+                className="inline-block h-3 w-3 rounded-sm"
+                style={{ backgroundColor: item.color }}
+              />
+              <span className="font-mono text-xs text-muted-foreground">
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 interface MatchSetupProps {
   onStart: (config: MatchConfig) => void

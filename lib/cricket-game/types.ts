@@ -16,9 +16,12 @@ export interface Square {
   isExtra: boolean
 }
 
+export type PlayerRole = "bat" | "bowl" | "wk" | "all"
+
 export interface Player {
   id: number
   name: string
+  role: PlayerRole
   runs: number
   ballsFaced: number
   isOut: boolean
@@ -30,6 +33,7 @@ export interface BallEvent {
   ball: number
   batsmanId: number
   batsmanName: string
+  bowlerName: string
   squareType: SquareType
   runs: number
   isExtra: boolean
@@ -47,6 +51,7 @@ export interface TeamState {
   balls: number
   currentBatsmanIndex: number
   nonStrikerIndex: number
+  currentBowlerIndex: number
   extras: {
     wides: number
     noBalls: number
@@ -79,6 +84,8 @@ export interface MatchConfig {
   playersPerTeam: number
   team1PlayerNames: string[]
   team2PlayerNames: string[]
+  team1PlayerRoles: PlayerRole[]
+  team2PlayerRoles: PlayerRole[]
 }
 
 export interface TossState {

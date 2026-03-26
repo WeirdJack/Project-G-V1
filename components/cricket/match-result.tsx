@@ -21,6 +21,77 @@ interface Particle {
   size: number
 }
 
+/* Animated trophy SVG */
+function TrophyAnimation({ color, isTie }: { color: string; isTie: boolean }) {
+  return (
+    <div
+      className="flex items-center justify-center"
+      style={{ animation: "trophy-bounce 0.7s cubic-bezier(0.34,1.56,0.64,1) both" }}
+    >
+      <svg
+        viewBox="0 0 100 110"
+        width="96"
+        height="106"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        {/* Glow */}
+        <ellipse
+          cx="50" cy="55"
+          rx="40" ry="42"
+          fill={isTie ? "#aaaaaa" : color}
+          style={{ opacity: 0.12, filter: "blur(12px)" }}
+        />
+        {/* Base plate */}
+        <rect x="28" y="95" width="44" height="8" rx="3" fill={isTie ? "#888" : color} stroke="#1a1a00" strokeWidth="2" />
+        {/* Stem */}
+        <rect x="42" y="80" width="16" height="18" rx="2" fill={isTie ? "#aaa" : color} stroke="#1a1a00" strokeWidth="2" />
+        {/* Cup body */}
+        <path
+          d="M20,12 Q16,50 34,72 Q42,80 50,80 Q58,80 66,72 Q84,50 80,12 Z"
+          fill={isTie ? "#cccccc" : color}
+          stroke="#1a1a00"
+          strokeWidth="2.5"
+        />
+        {/* Handles */}
+        <path d="M20,20 Q8,30 10,48 Q12,60 24,64" stroke={isTie ? "#bbb" : color} strokeWidth="7" fill="none" strokeLinecap="round" />
+        <path d="M20,20 Q8,30 10,48 Q12,60 24,64" stroke="#1a1a00" strokeWidth="10" fill="none" strokeLinecap="round" style={{ opacity: 0.3 }} />
+        <path d="M80,20 Q92,30 90,48 Q88,60 76,64" stroke={isTie ? "#bbb" : color} strokeWidth="7" fill="none" strokeLinecap="round" />
+        <path d="M80,20 Q92,30 90,48 Q88,60 76,64" stroke="#1a1a00" strokeWidth="10" fill="none" strokeLinecap="round" style={{ opacity: 0.3 }} />
+        {/* Cup shine */}
+        <path d="M34,20 Q36,50 42,68" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" style={{ opacity: 0.3 }} />
+        {/* Star on cup */}
+        <polygon
+          points="50,26 53,35 63,35 55,41 58,50 50,44 42,50 45,41 37,35 47,35"
+          fill="white"
+          style={{ opacity: isTie ? 0.3 : 0.85 }}
+        />
+        {/* Sparkles around trophy */}
+        <g style={{ animation: "trophy-sparkle 1.4s ease-in-out infinite" }}>
+          <line x1="12" y1="10" x2="12" y2="2"  stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+          <line x1="8"  y1="14" x2="2"  y2="14" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+          <line x1="88" y1="10" x2="88" y2="2"  stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+          <line x1="92" y1="14" x2="98" y2="14" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+          <line x1="50" y1="4"  x2="50" y2="0"  stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+        </g>
+      </svg>
+
+      <style jsx>{`
+        @keyframes trophy-bounce {
+          0%   { opacity: 0; transform: scale(0.3) translateY(30px) rotate(-8deg); }
+          60%  { opacity: 1; transform: scale(1.12) translateY(-8px) rotate(3deg); }
+          80%  { transform: scale(0.96) translateY(2px) rotate(-1deg); }
+          100% { opacity: 1; transform: scale(1) translateY(0) rotate(0deg); }
+        }
+        @keyframes trophy-sparkle {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.3; transform: scale(0.7); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 export function MatchResult({ state, onRestart }: MatchResultProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const particlesRef = useRef<Particle[]>([])
@@ -108,6 +179,9 @@ export function MatchResult({ state, onRestart }: MatchResultProps) {
           boxShadow: isTie ? undefined : `0 0 60px ${winnerColor}20`,
         }}
       >
+        {/* Trophy */}
+        <TrophyAnimation color={winnerColor} isTie={!!isTie} />
+
         {/* Result text */}
         <div className="flex flex-col items-center gap-2">
           <p className="font-sans text-xs uppercase tracking-wider text-muted-foreground">

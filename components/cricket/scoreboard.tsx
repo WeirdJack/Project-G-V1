@@ -121,6 +121,8 @@ export function ScoreboardBatter({ state }: ScoreboardProps) {
 export function ScoreboardBowler({ state }: ScoreboardProps) {
   const bowling = state[state.bowlingTeamKey]
   const bowlingColor = state.bowlingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
+  const currentBowler = bowling.players[bowling.currentBowlerIndex]
+  const bowlerName = currentBowler?.name ?? bowling.name
 
   return (
     <div 
@@ -129,10 +131,10 @@ export function ScoreboardBowler({ state }: ScoreboardProps) {
     >
       <span className="font-sans text-[9px] text-muted-foreground">Bowling</span>
       <span 
-        className="font-sans text-[10px] font-bold"
+        className="font-sans text-[10px] font-bold truncate max-w-[60px]"
         style={{ color: bowlingColor }}
       >
-        {bowling.name}
+        {bowlerName}
       </span>
     </div>
   )
@@ -156,36 +158,38 @@ export function ThisOver({ state }: ScoreboardProps) {
   const currentOver = batting.overs
   const currentOverEvents = batting.ballEvents.filter((e) => e.over === currentOver)
 
-  if (currentOverEvents.length === 0) return null
-
   return (
     <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-card/60 px-3 py-2">
-      <span className="font-sans text-xs text-muted-foreground">This over:</span>
+      <span className="font-sans text-xs text-muted-foreground shrink-0">This over:</span>
       <div className="flex flex-wrap items-center gap-1.5">
-        {currentOverEvents.map((e, i) => (
-          <span
-            key={i}
-            className="inline-flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-medium"
-            style={{
-              backgroundColor: e.isWicket
-                ? "#7a2a2a"
-                : e.isExtra
-                  ? "#4a2a6a"
-                  : e.runs >= 4
-                    ? "#8a6a10"
-                    : "#1a2a3a",
-              color: e.isWicket
-                ? "#ff6666"
-                : e.isExtra
-                  ? "#bb88ee"
-                  : e.runs >= 4
-                    ? "#ffe066"
-                    : "#8ffff0",
-            }}
-          >
-            {e.isWicket ? "W" : e.squareType === "wide" ? "Wd" : e.squareType === "no-ball" ? "NB" : e.runs}
-          </span>
-        ))}
+        {currentOverEvents.length === 0 ? (
+          <span className="font-sans text-xs text-muted-foreground/40 italic">–</span>
+        ) : (
+          currentOverEvents.map((e, i) => (
+            <span
+              key={i}
+              className="inline-flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-medium"
+              style={{
+                backgroundColor: e.isWicket
+                  ? "#7a2a2a"
+                  : e.isExtra
+                    ? "#4a2a6a"
+                    : e.runs >= 4
+                      ? "#8a6a10"
+                      : "#1a2a3a",
+                color: e.isWicket
+                  ? "#ff6666"
+                  : e.isExtra
+                    ? "#bb88ee"
+                    : e.runs >= 4
+                      ? "#ffe066"
+                      : "#8ffff0",
+              }}
+            >
+              {e.isWicket ? "W" : e.squareType === "wide" ? "Wd" : e.squareType === "no-ball" ? "NB" : e.runs}
+            </span>
+          ))
+        )}
       </div>
     </div>
   )
