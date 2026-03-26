@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { MatchConfig, GameMode, OversOption } from "@/lib/cricket-game/types"
+import type { PlayerRole } from "@/lib/cricket-game/types"
 import {
   DEFAULT_TEAM_NAMES,
   OVERS_OPTIONS,
@@ -28,6 +29,42 @@ interface MatchSetupProps {
   onStart: (config: MatchConfig) => void
 }
 
+const ROLE_OPTIONS: { value: PlayerRole; label: string; short: string; color: string }[] = [
+  { value: "bat",  label: "Batter",        short: "BAT", color: "#4ade80" },
+  { value: "bowl", label: "Bowler",         short: "BWL", color: "#22d3ee" },
+  { value: "wk",   label: "Wicket-keeper", short: "WK",  color: "#fbbf24" },
+  { value: "all",  label: "All-rounder",   short: "AR",  color: "#c084fc" },
+]
+
+function RolePicker({
+  value,
+  onChange,
+}: {
+  value: PlayerRole
+  onChange: (r: PlayerRole) => void
+}) {
+  return (
+    <div className="flex gap-1">
+      {ROLE_OPTIONS.map((r) => (
+        <button
+          key={r.value}
+          type="button"
+          onClick={() => onChange(r.value)}
+          title={r.label}
+          className="rounded px-1.5 py-0.5 font-mono text-[9px] font-bold transition-all"
+          style={{
+            backgroundColor: value === r.value ? r.color + "33" : "transparent",
+            color: value === r.value ? r.color : "#666",
+            border: `1px solid ${value === r.value ? r.color : "#444"}`,
+          }}
+        >
+          {r.short}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export function MatchSetup({ onStart }: MatchSetupProps) {
   const [mode, setMode] = useState<GameMode>("local")
   const [overs, setOvers] = useState<OversOption>(5)
@@ -39,6 +76,16 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
   )
   const [team2PlayerNames, setTeam2PlayerNames] = useState<string[]>(() =>
     generateDefaultPlayerNames(1, DEFAULT_PLAYERS_PER_TEAM)
+  )
+  const [team1PlayerRoles, setTeam1PlayerRoles] = useState<PlayerRole[]>(() =>
+    Array.from({ length: DEFAULT_PLAYERS_PER_TEAM }, (_, i) =>
+      i === 0 ? "wk" : i >= DEFAULT_PLAYERS_PER_TEAM - 3 ? "bowl" : "bat"
+    )
+  )
+  const [team2PlayerRoles, setTeam2PlayerRoles] = useState<PlayerRole[]>(() =>
+    Array.from({ length: DEFAULT_PLAYERS_PER_TEAM }, (_, i) =>
+      i === 0 ? "wk" : i >= DEFAULT_PLAYERS_PER_TEAM - 3 ? "bowl" : "bat"
+    )
   )
   const [showTeam1Players, setShowTeam1Players] = useState(false)
   const [showTeam2Players, setShowTeam2Players] = useState(false)
@@ -54,6 +101,16 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
         const defaults = generateDefaultPlayerNames(1, count)
         return Array.from({ length: count }, (_, i) => prev[i] ?? defaults[i])
       })
+      setTeam1PlayerRoles((prev) =>
+        Array.from({ length: count }, (_, i) =>
+          (prev[i] as PlayerRole | undefined) ?? (i === 0 ? "wk" : i >= count - 3 ? "bowl" : "bat")
+        )
+      )
+      setTeam2PlayerRoles((prev) =>
+        Array.from({ length: count }, (_, i) =>
+          (prev[i] as PlayerRole | undefined) ?? (i === 0 ? "wk" : i >= count - 3 ? "bowl" : "bat")
+        )
+      )
     },
     []
   )
@@ -77,6 +134,25 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
     []
   )
 
+  const updatePlayerRole = useCallback(
+    (team: 1 | 2, index: number, role: PlayerRole) => {
+      if (team === 1) {
+        setTeam1PlayerRoles((prev) => {
+          const next = [...prev]
+          next[index] = role
+          return next
+        })
+      } else {
+        setTeam2PlayerRoles((prev) => {
+          const next = [...prev]
+          next[index] = role
+          return next
+        })
+      }
+    },
+    []
+  )
+
   function handleStart() {
     onStart({
       overs,
@@ -86,12 +162,45 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
       playersPerTeam,
       team1PlayerNames,
       team2PlayerNames,
+      team1PlayerRoles,
+      team2PlayerRoles,
     })
   }
 
   function oversLabel(o: OversOption): string {
     if (o === "test") return "Test Match"
     return `${o} Overs`
+  }
+
+  function renderPlayerList(team: 1 | 2) {
+    const names = team === 1 ? team1PlayerNames : team2PlayerNames
+    const roles = team === 1 ? team1PlayerRoles : team2PlayerRoles
+
+    return (
+      <div className="flex max-h-64 flex-col gap-1.5 overflow-y-auto rounded-lg border border-border/30 bg-secondary/20 p-3">
+        {names.slice(0, playersPerTeam).map((name, i) => (
+          <div key={i} className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground">
+                {i + 1}.
+              </span>
+              <Input
+                value={name}
+                onChange={(e) => updatePlayerName(team, i, e.target.value)}
+                className="h-8 bg-secondary/50 font-sans text-xs"
+                maxLength={20}
+              />
+            </div>
+            <div className="ml-8">
+              <RolePicker
+                value={(roles[i] as PlayerRole | undefined) ?? "bat"}
+                onChange={(r) => updatePlayerRole(team, i, r)}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -205,25 +314,9 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
                 className="flex items-center gap-1 font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
               >
                 {showTeam1Players ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                {showTeam1Players ? "Hide" : "Edit"} Player Names
+                {showTeam1Players ? "Hide" : "Edit"} Players &amp; Roles
               </button>
-              {showTeam1Players && (
-                <div className="flex max-h-48 flex-col gap-2 overflow-y-auto rounded-lg border border-border/30 bg-secondary/20 p-3">
-                  {team1PlayerNames.slice(0, playersPerTeam).map((name, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground">
-                        {i + 1}.
-                      </span>
-                      <Input
-                        value={name}
-                        onChange={(e) => updatePlayerName(1, i, e.target.value)}
-                        className="h-8 bg-secondary/50 font-sans text-xs"
-                        maxLength={20}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+              {showTeam1Players && renderPlayerList(1)}
             </div>
 
             {/* Team 2 */}
@@ -250,25 +343,24 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
                 className="flex items-center gap-1 font-sans text-xs text-muted-foreground transition-colors hover:text-foreground"
               >
                 {showTeam2Players ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                {showTeam2Players ? "Hide" : "Edit"} Player Names
+                {showTeam2Players ? "Hide" : "Edit"} Players &amp; Roles
               </button>
-              {showTeam2Players && (
-                <div className="flex max-h-48 flex-col gap-2 overflow-y-auto rounded-lg border border-border/30 bg-secondary/20 p-3">
-                  {team2PlayerNames.slice(0, playersPerTeam).map((name, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="w-6 shrink-0 font-mono text-xs text-muted-foreground">
-                        {i + 1}.
-                      </span>
-                      <Input
-                        value={name}
-                        onChange={(e) => updatePlayerName(2, i, e.target.value)}
-                        className="h-8 bg-secondary/50 font-sans text-xs"
-                        maxLength={20}
-                      />
-                    </div>
-                  ))}
+              {showTeam2Players && renderPlayerList(2)}
+            </div>
+
+            {/* Role legend */}
+            <div className="flex flex-wrap gap-2">
+              {ROLE_OPTIONS.map((r) => (
+                <div key={r.value} className="flex items-center gap-1">
+                  <span
+                    className="inline-block rounded px-1 py-0.5 font-mono text-[9px] font-bold"
+                    style={{ backgroundColor: r.color + "22", color: r.color, border: `1px solid ${r.color}` }}
+                  >
+                    {r.short}
+                  </span>
+                  <span className="font-sans text-xs text-muted-foreground">{r.label}</span>
                 </div>
-              )}
+              ))}
             </div>
 
             {/* Start Button */}

@@ -16,6 +16,7 @@ import { CommentaryFeed } from "./commentary-feed"
 import { Umpire } from "./umpire"
 import { InningsSummary } from "./innings-summary"
 import { MatchResult } from "./match-result"
+import { DuckWalk } from "./duck-walk"
 
 export function CricketGame() {
   const { state, startMatch, rollDice, startNextInnings, restart } = useCricketGame()
@@ -67,6 +68,8 @@ export function CricketGame() {
   // Batting phase - main game UI
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background" onClick={unlockAudio}>
+      {/* Duck walk overlay (golden duck) */}
+      <DuckWalk state={state} soundEnabled={soundEnabled} />
       {/* Top bar */}
       <header className="flex shrink-0 items-center justify-between border-b border-border/30 px-4 py-2">
         <h1 className="font-sans text-sm font-semibold text-foreground">

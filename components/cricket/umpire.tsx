@@ -15,17 +15,17 @@ type UmpireSignal =
   | "runs"
   | "dot"
 
-const SIGNAL_LABELS: Record<UmpireSignal, { label: string; color: string; glow: string }> = {
-  idle:       { label: "",         color: "#8ffff0", glow: "transparent"  },
-  out:        { label: "OUT!",     color: "#ff6666", glow: "#ff666655"    },
-  boundary:   { label: "FOUR!",    color: "#ffe066", glow: "#ffe06655"    },
-  six:        { label: "SIX!",     color: "#ffdd33", glow: "#ffdd3355"    },
-  wide:       { label: "WIDE",     color: "#cc99ff", glow: "#cc99ff55"    },
-  "no-ball":  { label: "NO BALL",  color: "#bb88ee", glow: "#bb88ee55"    },
-  byes:       { label: "BYES",     color: "#88ccff", glow: "#88ccff55"    },
-  "leg-byes": { label: "LEG BYES", color: "#88ccff", glow: "#88ccff55"    },
-  runs:       { label: "RUNS",     color: "#8ffff0", glow: "#8ffff055"    },
-  dot:        { label: "DOT",      color: "#888888", glow: "#88888844"    },
+const SIGNAL_LABELS: Record<UmpireSignal, { label: string; color: string; bg: string }> = {
+  idle:       { label: "",         color: "#a0b8c0", bg: "transparent"  },
+  out:        { label: "OUT!",     color: "#ff4444", bg: "#ff444422"    },
+  boundary:   { label: "FOUR!",    color: "#ffd700", bg: "#ffd70022"    },
+  six:        { label: "SIX!",     color: "#ffaa00", bg: "#ffaa0022"    },
+  wide:       { label: "WIDE",     color: "#cc77ff", bg: "#cc77ff22"    },
+  "no-ball":  { label: "NO BALL",  color: "#aa66ff", bg: "#aa66ff22"    },
+  byes:       { label: "BYES",     color: "#66bbff", bg: "#66bbff22"    },
+  "leg-byes": { label: "LEG BYES", color: "#66bbff", bg: "#66bbff22"    },
+  runs:       { label: "RUNS",     color: "#66ffcc", bg: "#66ffcc22"    },
+  dot:        { label: "DOT",      color: "#667788", bg: "#66778822"    },
 }
 
 function squareTypeToSignal(type: SquareType | null): UmpireSignal {
@@ -48,216 +48,176 @@ interface UmpireProps {
   state: GameState
 }
 
-/* ──────────────────────────────────────────────────────
-   Sub-components for each arm/hand pose
-   All coordinates are in a 160 x 240 viewBox.
-   Shoulder-L = (48,82)   Shoulder-R = (112,82)
-   Arms are drawn as upper-arm + forearm + hand/fingers.
-   Transition is done via CSS on the wrapping <g>.
-   ────────────────────────────────────────────────────── */
+/* ── Cartoonish umpire SVG ── */
+/* ViewBox: 0 0 100 160, drawn with thick outlines and bold colors */
 
-/* ── Idle: both arms relaxed at sides ── */
-function ArmsIdle() {
+function CartoonUmpire({ signal }: { signal: UmpireSignal }) {
+  const isActive = signal !== "idle" && signal !== "dot"
+  const skinColor = "#f5c89a"
+  const coatColor = "#f8f8f2"
+  const coatDark = "#e8e8d8"
+  const hatColor = "#f0eed0"
+  const trouserColor = "#2a3a5a"
+  const shoeColor = "#1a1a2a"
+  const outlineWidth = 3.5
+  const accentColor = signal === "idle" || signal === "dot" ? "#5a8a6a" : SIGNAL_LABELS[signal].color
+
+  /* Arm configs per signal */
+  type ArmConfig = {
+    leftUpper: string; leftFore: string; leftHand: [number, number]
+    rightUpper: string; rightFore: string; rightHand: [number, number]
+  }
+
+  const arms: Record<UmpireSignal, ArmConfig> = {
+    idle:      { leftUpper: "M33,62 L26,80",  leftFore:  "M26,80 L24,98",  leftHand:  [24,100], rightUpper: "M67,62 L74,80",  rightFore:  "M74,80 L76,98",  rightHand:  [76,100] },
+    out:       { leftUpper: "M33,62 L26,80",  leftFore:  "M26,80 L24,98",  leftHand:  [24,100], rightUpper: "M67,62 L72,45",  rightFore:  "M72,45 L72,22",  rightHand:  [72,18]  },
+    boundary:  { leftUpper: "M33,62 L26,80",  leftFore:  "M26,80 L24,98",  leftHand:  [24,100], rightUpper: "M67,62 L74,72",  rightFore:  "M74,72 L50,70",  rightHand:  [47,70]  },
+    six:       { leftUpper: "M33,62 L28,44",  leftFore:  "M28,44 L24,22",  leftHand:  [24,18],  rightUpper: "M67,62 L72,44",  rightFore:  "M72,44 L76,22",  rightHand:  [76,18]  },
+    wide:      { leftUpper: "M33,62 L18,60",  leftFore:  "M18,60 L4,60",   leftHand:  [2,60],   rightUpper: "M67,62 L82,60",  rightFore:  "M82,60 L96,60",  rightHand:  [98,60]  },
+    "no-ball": { leftUpper: "M33,62 L26,80",  leftFore:  "M26,80 L24,98",  leftHand:  [24,100], rightUpper: "M67,62 L82,60",  rightFore:  "M82,60 L96,60",  rightHand:  [98,60]  },
+    byes:      { leftUpper: "M33,62 L26,80",  leftFore:  "M26,80 L24,98",  leftHand:  [24,100], rightUpper: "M67,62 L72,44",  rightFore:  "M72,44 L76,22",  rightHand:  [76,18]  },
+    "leg-byes":{ leftUpper: "M33,62 L26,80",  leftFore:  "M26,80 L24,98",  leftHand:  [24,100], rightUpper: "M67,62 L74,72",  rightFore:  "M74,72 L68,96",  rightHand:  [66,99]  },
+    runs:      { leftUpper: "M33,62 L26,80",  leftFore:  "M26,80 L24,98",  leftHand:  [24,100], rightUpper: "M67,62 L80,68",  rightFore:  "M80,68 L92,64",  rightHand:  [94,63]  },
+    dot:       { leftUpper: "M33,62 L26,80",  leftFore:  "M26,80 L24,98",  leftHand:  [24,100], rightUpper: "M67,62 L74,80",  rightFore:  "M74,80 L76,98",  rightHand:  [76,100] },
+  }
+
+  const a = arms[signal]
+
   return (
-    <>
-      {/* Left arm down */}
-      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="38" cy="150" r="5" fill="#d4a574" />
-      {/* Left sleeve */}
-      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm down */}
-      <path d="M112,82 L120,115 L122,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="122" cy="150" r="5" fill="#d4a574" />
-      {/* Right sleeve */}
-      <path d="M112,78 Q118,82 120,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
+    <svg
+      viewBox="-4 0 108 165"
+      width="80"
+      height="112"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label={`Umpire signalling ${signal}`}
+      role="img"
+      style={{ overflow: "visible" }}
+    >
+      {/* ── Glow halo when active ── */}
+      {isActive && (
+        <ellipse
+          cx="50" cy="80"
+          rx="46" ry="72"
+          fill={SIGNAL_LABELS[signal].bg}
+          style={{ filter: `blur(8px)` }}
+        />
+      )}
 
-/* ── OUT: right arm straight up, index finger raised ── */
-function ArmsOut() {
-  return (
-    <>
-      {/* Left arm relaxed */}
-      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="38" cy="150" r="5" fill="#d4a574" />
-      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm straight up */}
-      <path d="M112,82 L114,60 L115,30" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      {/* Index finger pointing up */}
-      <line x1="115" y1="30" x2="115" y2="14" stroke="#d4a574" strokeWidth="3.5" strokeLinecap="round" />
-      {/* Fist (other fingers curled) */}
-      <ellipse cx="115" cy="30" rx="5" ry="6" fill="#d4a574" />
-      <path d="M112,78 Q116,75 114,64" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
+      {/* ── LEFT ARM (drawn behind body) ── */}
+      <path d={a.leftUpper} stroke={skinColor} strokeWidth={10} strokeLinecap="round" fill="none" />
+      <path d={a.leftUpper} stroke="#1a2a1a" strokeWidth={outlineWidth + 7} strokeLinecap="round" fill="none" style={{ opacity: 0.5 }} />
+      {/* Sleeve */}
+      <path d={a.leftUpper} stroke={coatColor} strokeWidth={12} strokeLinecap="round" fill="none" />
+      <path d={a.leftUpper} stroke="#1a2a1a" strokeWidth={outlineWidth + 9} strokeLinecap="round" fill="none" style={{ opacity: 0.18 }} />
+      <path d={a.leftFore}  stroke={skinColor} strokeWidth={9}  strokeLinecap="round" fill="none" />
+      <path d={a.leftFore}  stroke="#1a2a1a" strokeWidth={outlineWidth + 6} strokeLinecap="round" fill="none" style={{ opacity: 0.4 }} />
+      <circle cx={a.leftHand[0]}  cy={a.leftHand[1]}  r={5.5} fill={skinColor} stroke="#1a2a1a" strokeWidth={2.5} />
 
-/* ── FOUR: right arm waving back and forth in front of chest (official ICC) ── */
-function ArmsBoundary() {
-  return (
-    <>
-      {/* Left arm relaxed at side */}
-      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="38" cy="150" r="5" fill="#d4a574" />
-      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm bent at elbow, forearm across chest waving */}
-      <path d="M112,82 L115,100 L70,95" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="70" cy="95" r="5" fill="#d4a574" />
-      {/* Open hand */}
-      <line x1="67" y1="90" x2="64" y2="86" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="70" y1="89" x2="70" y2="84" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="73" y1="90" x2="76" y2="86" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M112,78 Q114,88 115,98" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
+      {/* ── RIGHT ARM (drawn behind body) ── */}
+      <path d={a.rightUpper} stroke={skinColor} strokeWidth={10} strokeLinecap="round" fill="none" />
+      <path d={a.rightUpper} stroke="#1a2a1a" strokeWidth={outlineWidth + 7} strokeLinecap="round" fill="none" style={{ opacity: 0.5 }} />
+      <path d={a.rightUpper} stroke={coatColor} strokeWidth={12} strokeLinecap="round" fill="none" />
+      <path d={a.rightUpper} stroke="#1a2a1a" strokeWidth={outlineWidth + 9} strokeLinecap="round" fill="none" style={{ opacity: 0.18 }} />
+      <path d={a.rightFore}  stroke={skinColor} strokeWidth={9}  strokeLinecap="round" fill="none" />
+      <path d={a.rightFore}  stroke="#1a2a1a" strokeWidth={outlineWidth + 6} strokeLinecap="round" fill="none" style={{ opacity: 0.4 }} />
+      {/* Pointing finger for OUT */}
+      {signal === "out" && (
+        <line x1="72" y1="22" x2="72" y2="9" stroke={skinColor} strokeWidth={5} strokeLinecap="round" />
+      )}
+      <circle cx={a.rightHand[0]} cy={a.rightHand[1]} r={5.5} fill={skinColor} stroke="#1a2a1a" strokeWidth={2.5} />
 
-/* ── SIX: both arms raised straight above head ── */
-function ArmsSix() {
-  return (
-    <>
-      {/* Left arm up */}
-      <path d="M48,82 L42,55 L36,24" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="36" cy="22" r="5" fill="#d4a574" />
-      {/* Fingers spread */}
-      <line x1="33" y1="19" x2="30" y2="12" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="36" y1="17" x2="36" y2="10" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="39" y1="19" x2="42" y2="12" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M48,78 Q44,72 42,58" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm up */}
-      <path d="M112,82 L118,55 L124,24" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="124" cy="22" r="5" fill="#d4a574" />
-      {/* Fingers spread */}
-      <line x1="121" y1="19" x2="118" y2="12" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="124" y1="17" x2="124" y2="10" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="127" y1="19" x2="130" y2="12" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M112,78 Q116,72 118,58" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
+      {/* ── LEGS & SHOES ── */}
+      {/* Left leg */}
+      <path d="M40,118 L38,148 L34,154" stroke={trouserColor} strokeWidth={13} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M40,118 L38,148 L34,154" stroke="#1a2a1a" strokeWidth={outlineWidth + 10} strokeLinecap="round" strokeLinejoin="round" fill="none" style={{ opacity: 0.4 }} />
+      {/* Right leg */}
+      <path d="M60,118 L62,148 L66,154" stroke={trouserColor} strokeWidth={13} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M60,118 L62,148 L66,154" stroke="#1a2a1a" strokeWidth={outlineWidth + 10} strokeLinecap="round" strokeLinejoin="round" fill="none" style={{ opacity: 0.4 }} />
+      {/* Left shoe */}
+      <ellipse cx="32" cy="156" rx="11" ry="5" fill={shoeColor} stroke="#1a2a1a" strokeWidth={2.5} />
+      <ellipse cx="30" cy="154" rx="4" ry="2" fill="#333" />
+      {/* Right shoe */}
+      <ellipse cx="68" cy="156" rx="11" ry="5" fill={shoeColor} stroke="#1a2a1a" strokeWidth={2.5} />
+      <ellipse cx="70" cy="154" rx="4" ry="2" fill="#333" />
 
-/* ── WIDE: both arms stretched out horizontally ── */
-function ArmsWide() {
-  return (
-    <>
-      {/* Left arm out horizontal */}
-      <path d="M48,82 L20,78 L2,80" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="2" cy="80" r="5" fill="#d4a574" />
-      {/* Open palm */}
-      <line x1="2" y1="75" x2="0" y2="70" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="-1" y1="77" x2="-4" y2="73" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M48,78 Q38,76 24,76" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm out horizontal */}
-      <path d="M112,82 L140,78 L158,80" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="158" cy="80" r="5" fill="#d4a574" />
-      {/* Open palm */}
-      <line x1="158" y1="75" x2="160" y2="70" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="161" y1="77" x2="164" y2="73" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M112,78 Q122,76 136,76" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
+      {/* ── BODY (white coat) ── */}
+      {/* Outline first */}
+      <path
+        d="M28,60 Q26,120 34,120 L66,120 Q74,120 72,60 Q72,52 50,50 Q28,52 28,60Z"
+        fill="#1a2a1a"
+        style={{ opacity: 0.5 }}
+        transform="translate(0,3)"
+      />
+      <path
+        d="M28,60 Q26,120 34,120 L66,120 Q74,120 72,60 Q72,52 50,50 Q28,52 28,60Z"
+        fill={coatColor}
+        stroke="#1a2a1a"
+        strokeWidth={outlineWidth}
+      />
+      {/* Lapels */}
+      <path d="M50,58 L40,66 L36,60" fill={coatDark} stroke="#1a2a1a" strokeWidth={2} />
+      <path d="M50,58 L60,66 L64,60" fill={coatDark} stroke="#1a2a1a" strokeWidth={2} />
+      {/* Center line */}
+      <line x1="50" y1="66" x2="50" y2="118" stroke="#d8d8c8" strokeWidth={1.5} />
+      {/* Buttons */}
+      {[76, 88, 100, 112].map((y, i) => (
+        <circle key={i} cx="50" cy={y} r={2.5} fill={accentColor} stroke="#1a2a1a" strokeWidth={1.5} />
+      ))}
+      {/* Belt */}
+      <rect x="31" y="112" width="38" height="6" rx="2" fill="#2a3a2a" stroke="#1a2a1a" strokeWidth={2} />
+      <rect x="46" y="111" width="8" height="8" rx="1.5" fill={accentColor} stroke="#1a2a1a" strokeWidth={1.5} />
+      {/* Pocket */}
+      <rect x="34" y="82" width="12" height="9" rx="2" fill={coatDark} stroke="#d8d8c8" strokeWidth={1} />
+      {/* Pocket accent square */}
+      <rect x="36" y="84" width="4" height="3" rx="0.5" fill={accentColor} />
 
-/* ── NO BALL: right arm extended horizontally to the side (official ICC) ── */
-function ArmsNoBall() {
-  return (
-    <>
-      {/* Left arm relaxed at side */}
-      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="38" cy="150" r="5" fill="#d4a574" />
-      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm extended straight out horizontally */}
-      <path d="M112,82 L145,80 L168,80" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="168" cy="80" r="5" fill="#d4a574" />
-      {/* Open palm facing forward */}
-      <line x1="168" y1="75" x2="168" y2="69" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="171" y1="76" x2="174" y2="72" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="165" y1="76" x2="162" y2="72" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M112,78 Q130,78 145,78" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
+      {/* ── NECK ── */}
+      <rect x="43" y="48" width="14" height="10" rx="5" fill={skinColor} stroke="#1a2a1a" strokeWidth={outlineWidth} />
 
-/* ── BYES: one open hand raised above head (official ICC) ── */
-function ArmsByes() {
-  return (
-    <>
-      {/* Left arm relaxed */}
-      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="38" cy="150" r="5" fill="#d4a574" />
-      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm raised with open palm */}
-      <path d="M112,82 L118,55 L122,28" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="122" cy="26" r="5" fill="#d4a574" />
-      {/* Open palm fingers spread */}
-      <line x1="119" y1="22" x2="116" y2="14" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="122" y1="20" x2="122" y2="12" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="125" y1="22" x2="128" y2="14" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <line x1="127" y1="25" x2="132" y2="20" stroke="#d4a574" strokeWidth="2" strokeLinecap="round" />
-      <path d="M112,78 Q116,72 118,58" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
+      {/* ── HEAD ── */}
+      {/* Head shadow */}
+      <ellipse cx="51" cy="35" rx="20" ry="20" fill="#1a2a1a" style={{ opacity: 0.3 }} transform="translate(1,3)" />
+      {/* Head base */}
+      <ellipse cx="50" cy="34" rx="20" ry="20" fill={skinColor} stroke="#1a2a1a" strokeWidth={outlineWidth} />
+      {/* Cheek blush */}
+      <ellipse cx="35" cy="38" rx="5" ry="3.5" fill="#f0a080" style={{ opacity: 0.5 }} />
+      <ellipse cx="65" cy="38" rx="5" ry="3.5" fill="#f0a080" style={{ opacity: 0.5 }} />
+      {/* Sunglasses */}
+      <rect x="34" y="30" width="12" height="8" rx="3" fill="#1a1a2a" stroke="#333" strokeWidth={2} />
+      <rect x="54" y="30" width="12" height="8" rx="3" fill="#1a1a2a" stroke="#333" strokeWidth={2} />
+      <line x1="46" y1="34" x2="54" y2="34" stroke="#333" strokeWidth={2} />
+      {/* Glasses shine */}
+      <circle cx="37" cy="32" r={1.5} fill="white" style={{ opacity: 0.6 }} />
+      <circle cx="57" cy="32" r={1.5} fill="white" style={{ opacity: 0.6 }} />
+      {/* Nose */}
+      <ellipse cx="50" cy="41" rx="2.5" ry="2" fill="#d4a070" stroke="#1a2a1a" strokeWidth={1} />
+      {/* Mouth */}
+      {signal === "out" ? (
+        <ellipse cx="50" cy="46" rx="5" ry="3" fill="#1a1a2a" stroke="#1a1a2a" strokeWidth={1} />
+      ) : signal === "six" || signal === "boundary" ? (
+        <>
+          <path d="M42,45 Q50,52 58,45" stroke="#1a1a2a" strokeWidth={2.5} fill="none" strokeLinecap="round" />
+          <path d="M44,46 Q50,50 56,46" fill="#ff8888" style={{ opacity: 0.5 }} />
+        </>
+      ) : (
+        <path d="M43,46 Q50,50 57,46" stroke="#1a1a2a" strokeWidth={2} fill="none" strokeLinecap="round" />
+      )}
+      {/* Ear left */}
+      <ellipse cx="30" cy="34" rx="4" ry="5.5" fill={skinColor} stroke="#1a2a1a" strokeWidth={outlineWidth} />
+      {/* Ear right */}
+      <ellipse cx="70" cy="34" rx="4" ry="5.5" fill={skinColor} stroke="#1a2a1a" strokeWidth={outlineWidth} />
 
-/* ── LEG BYES: touch raised knee with hand (official ICC) ── */
-function ArmsLegByes() {
-  return (
-    <>
-      {/* Left arm relaxed */}
-      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="38" cy="150" r="5" fill="#d4a574" />
-      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm bent down touching knee area */}
-      <path d="M112,82 L115,110 L95,145" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="95" cy="147" r="5" fill="#d4a574" />
-      <path d="M112,78 Q114,90 115,105" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
+      {/* ── HAT ── */}
+      {/* Brim */}
+      <ellipse cx="50" cy="16" rx="26" ry="5.5" fill={hatColor} stroke="#1a2a1a" strokeWidth={outlineWidth} />
+      {/* Crown */}
+      <path d="M28,16 Q28,2 50,2 Q72,2 72,16" fill={hatColor} stroke="#1a2a1a" strokeWidth={outlineWidth} />
+      {/* Hat band */}
+      <rect x="29" y="12" width="42" height="5" rx="1" fill={accentColor} stroke="#1a2a1a" strokeWidth={1.5} />
+      {/* Hat highlight */}
+      <ellipse cx="50" cy="6" rx="8" ry="2" fill="white" style={{ opacity: 0.2 }} />
+    </svg>
   )
-}
-
-/* ── RUNS: both arms relaxed, small acknowledging gesture ── */
-function ArmsRuns() {
-  return (
-    <>
-      {/* Left arm relaxed */}
-      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="38" cy="150" r="5" fill="#d4a574" />
-      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      {/* Right arm slightly raised in acknowledgment */}
-      <path d="M112,82 L125,90 L140,85" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="140" cy="85" r="5" fill="#d4a574" />
-      <path d="M112,78 Q118,82 124,86" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
-
-/* ── DOT BALL: both arms at sides, no signal needed ── */
-function ArmsDot() {
-  return (
-    <>
-      {/* Both arms relaxed - same as idle */}
-      <path d="M48,82 L40,115 L38,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="38" cy="150" r="5" fill="#d4a574" />
-      <path d="M48,78 Q42,82 40,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-      <path d="M112,82 L120,115 L122,148" stroke="#d4a574" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <circle cx="122" cy="150" r="5" fill="#d4a574" />
-      <path d="M112,78 Q118,82 120,96" stroke="#e8e8e8" strokeWidth="9" strokeLinecap="round" fill="none" />
-    </>
-  )
-}
-
-const ARM_COMPONENTS: Record<UmpireSignal, React.FC> = {
-  idle: ArmsIdle,
-  out: ArmsOut,
-  boundary: ArmsBoundary,
-  six: ArmsSix,
-  wide: ArmsWide,
-  "no-ball": ArmsNoBall,
-  byes: ArmsByes,
-  "leg-byes": ArmsLegByes,
-  runs: ArmsRuns,
-  dot: ArmsDot,
 }
 
 export function Umpire({ state }: UmpireProps) {
@@ -268,118 +228,36 @@ export function Umpire({ state }: UmpireProps) {
       const s = squareTypeToSignal(state.lastSquareLanded.type)
       setSignal(s)
     } else {
-      const t = setTimeout(() => {
-        setSignal("idle")
-      }, 300)
+      const t = setTimeout(() => setSignal("idle"), 300)
       return () => clearTimeout(t)
     }
   }, [state.lastSquareLanded])
 
   const cfg = SIGNAL_LABELS[signal]
   const isActive = signal !== "idle"
-  const ArmsPose = ARM_COMPONENTS[signal]
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      {/* Umpire figure */}
+    <div className="flex flex-col items-center gap-0.5">
       <div
-        className="relative"
         style={{
-          filter: isActive ? `drop-shadow(0 0 18px ${cfg.glow})` : "none",
-          transition: "filter 0.4s ease",
+          transition: "transform 0.2s ease",
+          transform: isActive ? "scale(1.08)" : "scale(1)",
         }}
       >
-        <svg
-          width="90"
-          height="129"
-          viewBox="-10 0 180 240"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-label={`Umpire signalling ${signal}`}
-          role="img"
-          className="overflow-visible"
-        >
-          {/* ── Wide-brim sun hat ── */}
-          <ellipse cx="80" cy="34" rx="26" ry="8" fill="#f0f0f0" stroke="#ccc" strokeWidth="1" />
-          <path d="M62,34 Q62,14 80,12 Q98,14 98,34" fill="#f5f5f5" stroke="#ccc" strokeWidth="1" />
-          {/* Hat band */}
-          <rect x="62" y="30" width="36" height="5" rx="2" fill="#1a3a1a" />
-
-          {/* ── Head ── */}
-          <ellipse cx="80" cy="48" rx="14" ry="16" fill="#d4a574" stroke="#b8896a" strokeWidth="1" />
-          {/* Sunglasses */}
-          <rect x="68" y="44" width="10" height="7" rx="2" fill="#1a1a2a" stroke="#333" strokeWidth="0.8" />
-          <rect x="82" y="44" width="10" height="7" rx="2" fill="#1a1a2a" stroke="#333" strokeWidth="0.8" />
-          <line x1="78" y1="47" x2="82" y2="47" stroke="#333" strokeWidth="1" />
-          {/* Nose */}
-          <ellipse cx="80" cy="52" rx="2" ry="1.5" fill="#c29468" />
-          {/* Mouth - expression changes */}
-          {signal === "out" ? (
-            <ellipse cx="80" cy="58" rx="3" ry="2.5" fill="#2a2a3a" />
-          ) : signal === "six" || signal === "boundary" ? (
-            <path d="M74,56 Q80,62 86,56" stroke="#2a2a3a" strokeWidth="1.5" fill="none" />
-          ) : (
-            <path d="M76,58 L84,58" stroke="#8a6a5a" strokeWidth="1.2" strokeLinecap="round" />
-          )}
-
-          {/* ── Neck ── */}
-          <rect x="74" y="62" width="12" height="8" rx="3" fill="#d4a574" />
-
-          {/* ── Body: white cricket umpire coat ── */}
-          <path
-            d="M48,76 L44,170 L116,170 L112,76 Q112,68 80,68 Q48,68 48,76Z"
-            fill="#f0f0f0"
-            stroke="#ddd"
-            strokeWidth="1"
-          />
-          {/* Coat collar */}
-          <path d="M64,70 L80,78 L96,70" fill="none" stroke="#ddd" strokeWidth="1.5" />
-          {/* Coat center line */}
-          <line x1="80" y1="78" x2="80" y2="168" stroke="#e0e0e0" strokeWidth="1" />
-          {/* Buttons */}
-          <circle cx="80" cy="92" r="2" fill="#ccc" stroke="#bbb" strokeWidth="0.5" />
-          <circle cx="80" cy="108" r="2" fill="#ccc" stroke="#bbb" strokeWidth="0.5" />
-          <circle cx="80" cy="124" r="2" fill="#ccc" stroke="#bbb" strokeWidth="0.5" />
-          <circle cx="80" cy="140" r="2" fill="#ccc" stroke="#bbb" strokeWidth="0.5" />
-          {/* Pockets */}
-          <rect x="54" y="110" width="16" height="12" rx="2" fill="none" stroke="#ddd" strokeWidth="1" />
-          <rect x="90" y="110" width="16" height="12" rx="2" fill="none" stroke="#ddd" strokeWidth="1" />
-          {/* Coat hem line */}
-          <line x1="44" y1="168" x2="116" y2="168" stroke="#ddd" strokeWidth="1" />
-
-          {/* ── Arms (signal-specific) ── */}
-          <ArmsPose />
-
-          {/* ── Legs: dark trousers ── */}
-          <path d="M58,170 L56,210 L50,212 L62,212 L60,170" fill="#2a2a3a" stroke="#1a1a2a" strokeWidth="0.5" />
-          <path d="M100,170 L102,210 L96,212 L108,212 L106,170" fill="#2a2a3a" stroke="#1a1a2a" strokeWidth="0.5" />
-
-          {/* ── Shoes ── */}
-          <ellipse cx="55" cy="215" rx="10" ry="5" fill="#1a1a1a" />
-          <ellipse cx="103" cy="215" rx="10" ry="5" fill="#1a1a1a" />
-          {/* Shoe shine */}
-          <ellipse cx="53" cy="213" rx="4" ry="1.5" fill="#2a2a2a" />
-          <ellipse cx="101" cy="213" rx="4" ry="1.5" fill="#2a2a2a" />
-
-          {/* ── Belt ── */}
-          <rect x="48" y="155" width="64" height="5" rx="2" fill="#3a3a3a" />
-          <rect x="76" y="154" width="8" height="7" rx="1" fill="#888" stroke="#666" strokeWidth="0.5" />
-        </svg>
-
-        {/* Glow aura */}
-        {isActive && (
-          <div
-            className="absolute inset-0 -z-10 animate-pulse rounded-full"
-            style={{
-              background: `radial-gradient(circle, ${cfg.glow} 0%, transparent 70%)`,
-            }}
-          />
-        )}
+        <CartoonUmpire signal={signal} />
       </div>
-
-      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-        Umpire
-      </span>
+      {isActive ? (
+        <span
+          className="rounded-full px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider"
+          style={{ color: cfg.color, backgroundColor: cfg.bg, border: `1px solid ${cfg.color}55` }}
+        >
+          {cfg.label}
+        </span>
+      ) : (
+        <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground/50">
+          Umpire
+        </span>
+      )}
     </div>
   )
 }

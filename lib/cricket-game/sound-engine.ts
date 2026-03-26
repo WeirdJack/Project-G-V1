@@ -15,6 +15,7 @@ type SquareSound =
   | "dice-roll"
   | "stumps-hit"
   | "coin-toss"
+  | "duck-quack"
 
 let audioCtx: AudioContext | null = null
 let audioUnlocked = false
@@ -218,8 +219,48 @@ function playStumpsHit() {
   playTone(200, 0.4, "sine", 0.04, 0.4)
 }
 
-function playCoinToss() {
-  // Realistic coin flip - thumb flick, spinning in air, catching, and slap reveal
+function playDuckQuack() {
+  // Comical duck quack using a tone with a quick descending chirp
+  const ctx = getCtx()
+  // First quack
+  const osc1 = ctx.createOscillator()
+  const g1 = ctx.createGain()
+  osc1.type = "sawtooth"
+  osc1.frequency.setValueAtTime(900, ctx.currentTime)
+  osc1.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.18)
+  g1.gain.setValueAtTime(0.18, ctx.currentTime)
+  g1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
+  osc1.connect(g1)
+  g1.connect(ctx.destination)
+  osc1.start()
+  osc1.stop(ctx.currentTime + 0.2)
+  // Second quack (slightly higher)
+  const osc2 = ctx.createOscillator()
+  const g2 = ctx.createGain()
+  osc2.type = "sawtooth"
+  osc2.frequency.setValueAtTime(1000, ctx.currentTime + 0.32)
+  osc2.frequency.exponentialRampToValueAtTime(450, ctx.currentTime + 0.50)
+  g2.gain.setValueAtTime(0.15, ctx.currentTime + 0.32)
+  g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.52)
+  osc2.connect(g2)
+  g2.connect(ctx.destination)
+  osc2.start(ctx.currentTime + 0.32)
+  osc2.stop(ctx.currentTime + 0.52)
+  // Third quack (for comedy)
+  const osc3 = ctx.createOscillator()
+  const g3 = ctx.createGain()
+  osc3.type = "sawtooth"
+  osc3.frequency.setValueAtTime(950, ctx.currentTime + 0.7)
+  osc3.frequency.exponentialRampToValueAtTime(380, ctx.currentTime + 0.9)
+  g3.gain.setValueAtTime(0.13, ctx.currentTime + 0.7)
+  g3.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.92)
+  osc3.connect(g3)
+  g3.connect(ctx.destination)
+  osc3.start(ctx.currentTime + 0.7)
+  osc3.stop(ctx.currentTime + 0.92)
+}
+
+function playCoinToss() {  // Realistic coin flip - thumb flick, spinning in air, catching, and slap reveal
   const ctx = getCtx()
   
   // Initial thumb flick - sharp metallic ping
@@ -292,6 +333,9 @@ export function playSound(type: SquareSound) {
         break
       case "stumps-hit":
         playStumpsHit()
+        break
+      case "duck-quack":
+        playDuckQuack()
         break
       case "coin-toss":
         playCoinToss()
