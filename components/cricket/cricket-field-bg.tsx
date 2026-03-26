@@ -2,6 +2,11 @@
 
 import { useEffect, useRef } from "react"
 
+/**
+ * Cartoonish cricket ground background — intended to sit behind the GameBoard canvas.
+ * Draws a bright top-down ground with bold outlines, chunky grass tufts, a sandy pitch,
+ * wiggly boundary rope, cartoon stumps, and cheerful crowd blobs.
+ */
 export function CricketFieldBg() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -11,233 +16,329 @@ export function CricketFieldBg() {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    let animationId: number
+    let animId: number
     let t = 0
 
-    // Crowd dots — small blinking spectator dots around the stands
-    const crowdDots: { x: number; y: number; phase: number; r: number }[] = []
+    // Grass tufts scattered in outfield
+    type Tuft = { x: number; y: number; size: number; phase: number }
+    const tufts: Tuft[] = []
+    // Crowd blobs around the stands
+    type Blob = { angle: number; dist: number; color: string; phase: number; w: number; h: number }
+    const blobs: Blob[] = []
 
     function resize() {
       if (!canvas) return
-      canvas.width = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
-      crowdDots.length = 0
-      buildCrowd()
+      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1)
+      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 1)
+      ctx!.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1)
+      buildScene()
     }
 
-    function buildCrowd() {
+    function buildScene() {
       if (!canvas) return
-      const cx = canvas.width / 2
-      const cy = canvas.height / 2
-      const outerR = Math.min(canvas.width, canvas.height) * 0.48
-      const innerR = outerR * 0.82
-      const count = 140
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2
-        const dist = innerR + Math.random() * (outerR - innerR)
-        crowdDots.push({
-          x: cx + Math.cos(angle) * dist,
-          y: cy + Math.sin(angle) * dist,
+      const w = canvas.offsetWidth
+      const h = canvas.offsetHeight
+      const cx = w / 2
+      const cy = h / 2
+      const minDim = Math.min(w, h)
+      const outerR = minDim * 0.46
+      const boundaryR = outerR * 0.80
+
+      tufts.length = 0
+      blobs.length = 0
+
+      // Grass tufts between 30-yard circle and boundary
+      const infieldR = outerR * 0.50
+      for (let i = 0; i < 55; i++) {
+        const angle = Math.random() * Math.PI * 2
+        const dist = infieldR + Math.random() * (boundaryR - infieldR - 4)
+        const tx = cx + Math.cos(angle) * dist
+        const ty = cy + Math.sin(angle) * dist
+        tufts.push({ x: tx, y: ty, size: 3 + Math.random() * 3, phase: Math.random() * Math.PI * 2 })
+      }
+
+      // Crowd blobs — chunky cartoon spectators in the stands
+      const standInner = boundaryR * 1.05
+      const standOuter = outerR * 1.02
+      const crowdColors = ["#ff6b6b","#ffd93d","#6bcb77","#4d96ff","#ff9f43","#ee5a24","#a29bfe","#fd79a8"]
+      for (let i = 0; i < 60; i++) {
+        const angle = (i / 60) * Math.PI * 2 + 0.05
+        const dist = standInner + Math.random() * (standOuter - standInner)
+        blobs.push({
+          angle,
+          dist,
+          color: crowdColors[Math.floor(Math.random() * crowdColors.length)],
           phase: Math.random() * Math.PI * 2,
-          r: 1.2 + Math.random() * 1.2,
+          w: 5 + Math.random() * 5,
+          h: 6 + Math.random() * 5,
         })
       }
     }
 
+    function roundRect(
+      x: number, y: number, w: number, h: number, r: number
+    ) {
+      if (!ctx) return
+      ctx.beginPath()
+      ctx.moveTo(x + r, y)
+      ctx.lineTo(x + w - r, y)
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+      ctx.lineTo(x + w, y + h - r)
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+      ctx.lineTo(x + r, y + h)
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+      ctx.lineTo(x, y + r)
+      ctx.quadraticCurveTo(x, y, x + r, y)
+      ctx.closePath()
+    }
+
     function draw() {
       if (!canvas || !ctx) return
-      const w = canvas.width
-      const h = canvas.height
+      const w = canvas.offsetWidth
+      const h = canvas.offsetHeight
       const cx = w / 2
       const cy = h / 2
       const minDim = Math.min(w, h)
-      const outerR = minDim * 0.48
-      const innerR = outerR * 0.78   // boundary rope edge
-      const pitchLen = minDim * 0.22
-      const pitchW = minDim * 0.045
+      const outerR = minDim * 0.46
+      const boundaryR = outerR * 0.80
+      const infieldR = outerR * 0.50
 
       ctx.clearRect(0, 0, w, h)
 
-      // --- Background fill ---
-      ctx.fillStyle = "#0b1a0e"
+      // -- Sky/stadium background --
+      ctx.fillStyle = "#1a1a2e"
       ctx.fillRect(0, 0, w, h)
 
-      // --- Outer stands ring (dark) ---
+      // -- Stands (dark ring outside the field) --
       ctx.beginPath()
-      ctx.arc(cx, cy, outerR * 1.05, 0, Math.PI * 2)
-      ctx.fillStyle = "#0d1f10"
+      ctx.arc(cx, cy, outerR * 1.08, 0, Math.PI * 2)
+      ctx.fillStyle = "#16213e"
       ctx.fill()
+      ctx.strokeStyle = "#0f3460"
+      ctx.lineWidth = 3
+      ctx.stroke()
 
-      // --- Grass outfield (animated mowing stripes) ---
+      // -- Outfield grass (bright cartoon green) --
+      ctx.beginPath()
+      ctx.arc(cx, cy, boundaryR, 0, Math.PI * 2)
+      ctx.fillStyle = "#3d9e3d"
+      ctx.fill()
+      ctx.strokeStyle = "#2d7a2d"
+      ctx.lineWidth = 2.5
+      ctx.stroke()
+
+      // Mowing stripes on outfield
       ctx.save()
       ctx.beginPath()
-      ctx.arc(cx, cy, outerR, 0, Math.PI * 2)
+      ctx.arc(cx, cy, boundaryR, 0, Math.PI * 2)
       ctx.clip()
-
-      const stripeW = minDim * 0.055
-      const stripeCount = Math.ceil((outerR * 2) / stripeW) + 2
-      const startX = cx - outerR - stripeW
-      for (let i = 0; i < stripeCount; i++) {
-        const even = i % 2 === 0
-        // animate stripes very slowly drifting
-        const drift = (t * 0.12) % stripeW
-        ctx.fillStyle = even ? "#1a3d1e" : "#163318"
-        ctx.fillRect(startX + i * stripeW - drift, cy - outerR, stripeW, outerR * 2)
+      const stripeW = minDim * 0.06
+      const count = Math.ceil((boundaryR * 2) / stripeW) + 2
+      for (let i = 0; i < count; i++) {
+        if (i % 2 === 0) {
+          ctx.fillStyle = "rgba(0,0,0,0.06)"
+          ctx.fillRect(cx - boundaryR + i * stripeW, cy - boundaryR, stripeW, boundaryR * 2)
+        }
       }
       ctx.restore()
 
-      // --- Inner circle (30-yard circle) ---
-      const infield = outerR * 0.52
+      // -- Infield (lighter green) --
       ctx.beginPath()
-      ctx.arc(cx, cy, infield, 0, Math.PI * 2)
-      ctx.fillStyle = "#1c4220"
+      ctx.arc(cx, cy, infieldR, 0, Math.PI * 2)
+      ctx.fillStyle = "#4db84d"
       ctx.fill()
-
-      // Infield mowing stripes (perpendicular)
-      ctx.save()
-      ctx.beginPath()
-      ctx.arc(cx, cy, infield, 0, Math.PI * 2)
-      ctx.clip()
-      const iStripeW = minDim * 0.06
-      const iCount = Math.ceil((infield * 2) / iStripeW) + 2
-      const iStart = cy - infield - iStripeW
-      for (let i = 0; i < iCount; i++) {
-        const even = i % 2 === 0
-        const drift = (t * 0.1) % iStripeW
-        ctx.fillStyle = even ? "#1c4220" : "#183c1c"
-        ctx.fillRect(cx - infield, iStart + i * iStripeW - drift, infield * 2, iStripeW)
-      }
-      ctx.restore()
-
-      // --- Boundary rope ---
-      ctx.beginPath()
-      ctx.arc(cx, cy, innerR, 0, Math.PI * 2)
-      ctx.strokeStyle = "rgba(255,255,255,0.18)"
+      ctx.strokeStyle = "#2d7a2d"
       ctx.lineWidth = 2
-      ctx.setLineDash([6, 8])
+      ctx.setLineDash([6, 5])
       ctx.stroke()
       ctx.setLineDash([])
 
-      // --- 30-yard circle dashed line ---
+      // -- Wiggly boundary rope --
       ctx.beginPath()
-      ctx.arc(cx, cy, infield, 0, Math.PI * 2)
-      ctx.strokeStyle = "rgba(255,255,255,0.10)"
-      ctx.lineWidth = 1.5
-      ctx.setLineDash([4, 7])
+      const ropeSegs = 120
+      for (let i = 0; i <= ropeSegs; i++) {
+        const angle = (i / ropeSegs) * Math.PI * 2
+        const wiggle = Math.sin(angle * 8 + t * 1.2) * 2.5
+        const r = boundaryR + wiggle
+        const rx = cx + Math.cos(angle) * r
+        const ry = cy + Math.sin(angle) * r
+        if (i === 0) ctx.moveTo(rx, ry)
+        else ctx.lineTo(rx, ry)
+      }
+      ctx.closePath()
+      ctx.strokeStyle = "#ffffff"
+      ctx.lineWidth = 2.5
+      ctx.stroke()
+
+      // Rope color alternating dashes (red/white)
+      ctx.beginPath()
+      for (let i = 0; i <= ropeSegs; i++) {
+        const angle = (i / ropeSegs) * Math.PI * 2
+        const wiggle = Math.sin(angle * 8 + t * 1.2) * 2.5
+        const r = boundaryR + wiggle
+        const rx = cx + Math.cos(angle) * r
+        const ry = cy + Math.sin(angle) * r
+        if (i === 0) ctx.moveTo(rx, ry)
+        else ctx.lineTo(rx, ry)
+      }
+      ctx.strokeStyle = "#ff4444"
+      ctx.lineWidth = 2.5
+      ctx.setLineDash([8, 8])
       ctx.stroke()
       ctx.setLineDash([])
 
-      // --- Pitch (beige rectangle) ---
+      // -- Grass tufts --
+      for (const tuft of tufts) {
+        const sway = Math.sin(tuft.phase + t * 1.5) * 1.2
+        ctx.save()
+        ctx.translate(tuft.x + sway, tuft.y)
+        // Three blades
+        for (let b = -1; b <= 1; b++) {
+          ctx.beginPath()
+          ctx.moveTo(b * tuft.size * 0.4, 0)
+          ctx.quadraticCurveTo(
+            b * tuft.size * 0.8 + sway * 0.5,
+            -tuft.size,
+            b * tuft.size * 0.6 + sway,
+            -tuft.size * 1.8
+          )
+          ctx.strokeStyle = "#2a6b2a"
+          ctx.lineWidth = 1.2
+          ctx.stroke()
+        }
+        ctx.restore()
+      }
+
+      // -- Pitch (sandy cartoon rectangle) --
+      const pitchLen = minDim * 0.24
+      const pitchW = minDim * 0.055
       ctx.save()
       ctx.translate(cx, cy)
-      // Pitch shadow
-      ctx.shadowColor = "rgba(0,0,0,0.6)"
-      ctx.shadowBlur = 10
-      ctx.fillStyle = "#8b7355"
-      ctx.fillRect(-pitchW / 2, -pitchLen / 2, pitchW, pitchLen)
+      // Shadow
+      ctx.shadowColor = "rgba(0,0,0,0.4)"
+      ctx.shadowBlur = 8
+      ctx.shadowOffsetY = 3
+      // Pitch fill
+      ctx.fillStyle = "#d4a96a"
+      roundRect(-pitchW / 2, -pitchLen / 2, pitchW, pitchLen, 4)
+      ctx.fill()
       ctx.shadowBlur = 0
-
-      // Pitch texture lines (creases)
-      ctx.strokeStyle = "rgba(255,255,255,0.55)"
-      ctx.lineWidth = 1.2
-      // Batting crease top
-      ctx.beginPath()
-      ctx.moveTo(-pitchW / 2 - pitchW * 0.3, -pitchLen / 2 + pitchLen * 0.12)
-      ctx.lineTo(pitchW / 2 + pitchW * 0.3, -pitchLen / 2 + pitchLen * 0.12)
+      ctx.shadowOffsetY = 0
+      // Pitch outline (bold cartoon)
+      ctx.strokeStyle = "#8b6914"
+      ctx.lineWidth = 2
+      roundRect(-pitchW / 2, -pitchLen / 2, pitchW, pitchLen, 4)
       ctx.stroke()
-      // Batting crease bottom
+      // Crease lines
+      ctx.strokeStyle = "#ffffff"
+      ctx.lineWidth = 1.8
+      const cr1 = -pitchLen * 0.35
+      const cr2 = pitchLen * 0.35
       ctx.beginPath()
-      ctx.moveTo(-pitchW / 2 - pitchW * 0.3, pitchLen / 2 - pitchLen * 0.12)
-      ctx.lineTo(pitchW / 2 + pitchW * 0.3, pitchLen / 2 - pitchLen * 0.12)
+      ctx.moveTo(-pitchW * 0.7, cr1)
+      ctx.lineTo(pitchW * 0.7, cr1)
+      ctx.moveTo(-pitchW * 0.7, cr2)
+      ctx.lineTo(pitchW * 0.7, cr2)
       ctx.stroke()
-      // Bowling crease top
-      ctx.strokeStyle = "rgba(255,255,255,0.35)"
-      ctx.beginPath()
-      ctx.moveTo(-pitchW / 2, -pitchLen / 2 + pitchLen * 0.22)
-      ctx.lineTo(pitchW / 2, -pitchLen / 2 + pitchLen * 0.22)
-      ctx.stroke()
-      // Bowling crease bottom
-      ctx.beginPath()
-      ctx.moveTo(-pitchW / 2, pitchLen / 2 - pitchLen * 0.22)
-      ctx.lineTo(pitchW / 2, pitchLen / 2 - pitchLen * 0.22)
-      ctx.stroke()
-
-      // Stumps top (3 small lines)
-      const stumpY = -pitchLen / 2 + pitchLen * 0.1
-      const stumpSpacing = pitchW * 0.18
-      ctx.strokeStyle = "rgba(255,235,180,0.9)"
-      ctx.lineWidth = 1.5
-      for (let i = -1; i <= 1; i++) {
-        ctx.beginPath()
-        ctx.moveTo(i * stumpSpacing, stumpY - 4)
-        ctx.lineTo(i * stumpSpacing, stumpY + 4)
-        ctx.stroke()
-      }
-      // Stumps bottom
-      const stumpY2 = pitchLen / 2 - pitchLen * 0.1
-      for (let i = -1; i <= 1; i++) {
-        ctx.beginPath()
-        ctx.moveTo(i * stumpSpacing, stumpY2 - 4)
-        ctx.lineTo(i * stumpSpacing, stumpY2 + 4)
-        ctx.stroke()
+      // Stumps (3 per end, cartoon style)
+      const stumpColors = ["#f5e642", "#f5e642", "#f5e642"]
+      for (const sy of [cr1 - 2, cr2 + 2]) {
+        for (let s = -1; s <= 1; s++) {
+          // Stump post
+          ctx.fillStyle = stumpColors[s + 1]
+          ctx.fillRect(s * pitchW * 0.22 - 1, sy - 6, 2.5, 8)
+          // Bail (tiny crossbar)
+          ctx.fillStyle = "#ffffff"
+          ctx.fillRect(s * pitchW * 0.22 - 2, sy - 6, 5, 1.5)
+        }
       }
       ctx.restore()
 
-      // --- Crowd dots (blinking) ---
-      for (const dot of crowdDots) {
-        const brightness = 0.3 + 0.5 * (0.5 + 0.5 * Math.sin(dot.phase + t * 0.7))
-        // Randomise colours slightly
-        const hue = 80 + ((dot.x * 7 + dot.y * 3) % 60)
+      // -- Crowd blobs (cartoon spectators) --
+      for (const blob of blobs) {
+        const bob = Math.sin(blob.phase + t * 1.8) * 1.5
+        const bx = cx + Math.cos(blob.angle) * blob.dist
+        const by = cy + Math.sin(blob.angle) * blob.dist + bob
+        // Body
         ctx.beginPath()
-        ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2)
-        ctx.fillStyle = `hsla(${hue}, 60%, ${Math.round(brightness * 70)}%, ${brightness})`
+        ctx.ellipse(bx, by + blob.h * 0.2, blob.w * 0.45, blob.h * 0.55, 0, 0, Math.PI * 2)
+        ctx.fillStyle = blob.color
         ctx.fill()
+        ctx.strokeStyle = "rgba(0,0,0,0.3)"
+        ctx.lineWidth = 0.8
+        ctx.stroke()
+        // Head
+        ctx.beginPath()
+        ctx.arc(bx, by - blob.h * 0.3, blob.w * 0.32, 0, Math.PI * 2)
+        ctx.fillStyle = "#f5cba7"
+        ctx.fill()
+        ctx.strokeStyle = "rgba(0,0,0,0.25)"
+        ctx.lineWidth = 0.8
+        ctx.stroke()
       }
 
-      // --- Floodlight glow (four soft radial gradients at corners of field) ---
-      const glowPositions = [
-        { x: cx - outerR * 0.72, y: cy - outerR * 0.72 },
-        { x: cx + outerR * 0.72, y: cy - outerR * 0.72 },
-        { x: cx - outerR * 0.72, y: cy + outerR * 0.72 },
-        { x: cx + outerR * 0.72, y: cy + outerR * 0.72 },
+      // -- Floodlight towers (4 corners, cartoon style) --
+      const towerPositions = [
+        { x: cx - outerR * 0.75, y: cy - outerR * 0.75 },
+        { x: cx + outerR * 0.75, y: cy - outerR * 0.75 },
+        { x: cx - outerR * 0.75, y: cy + outerR * 0.75 },
+        { x: cx + outerR * 0.75, y: cy + outerR * 0.75 },
       ]
-      for (const g of glowPositions) {
-        const grd = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, outerR * 0.35)
-        grd.addColorStop(0, "rgba(255,245,200,0.07)")
-        grd.addColorStop(1, "rgba(255,245,200,0)")
+      for (const tp of towerPositions) {
+        // Light cone
+        const coneGrad = ctx.createRadialGradient(tp.x, tp.y, 0, tp.x, tp.y, outerR * 0.32)
+        coneGrad.addColorStop(0, "rgba(255,250,200,0.10)")
+        coneGrad.addColorStop(1, "rgba(255,250,200,0)")
         ctx.beginPath()
-        ctx.arc(g.x, g.y, outerR * 0.35, 0, Math.PI * 2)
-        ctx.fillStyle = grd
+        ctx.arc(tp.x, tp.y, outerR * 0.32, 0, Math.PI * 2)
+        ctx.fillStyle = coneGrad
         ctx.fill()
+        // Tower pole
+        ctx.beginPath()
+        ctx.moveTo(tp.x, tp.y)
+        ctx.lineTo(cx + (tp.x - cx) * 0.92, cy + (tp.y - cy) * 0.92)
+        ctx.strokeStyle = "#4a5568"
+        ctx.lineWidth = 3
+        ctx.stroke()
+        // Light bulb
+        ctx.beginPath()
+        ctx.arc(tp.x, tp.y, 5, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255,250,180,${0.7 + 0.3 * Math.sin(t * 1.5 + tp.x)})`
+        ctx.fill()
+        ctx.strokeStyle = "#888"
+        ctx.lineWidth = 1
+        ctx.stroke()
       }
 
-      // --- Dark vignette over the whole field to ensure UI contrast ---
-      const vignette = ctx.createRadialGradient(cx, cy, outerR * 0.3, cx, cy, outerR * 1.1)
+      // -- Subtle dark vignette to keep the game board readable on top --
+      const vignette = ctx.createRadialGradient(cx, cy, infieldR * 0.3, cx, cy, outerR * 1.1)
       vignette.addColorStop(0, "rgba(0,0,0,0)")
-      vignette.addColorStop(1, "rgba(0,0,0,0.55)")
+      vignette.addColorStop(0.7, "rgba(0,0,0,0.08)")
+      vignette.addColorStop(1, "rgba(0,0,0,0.45)")
       ctx.beginPath()
       ctx.arc(cx, cy, outerR * 1.1, 0, Math.PI * 2)
       ctx.fillStyle = vignette
       ctx.fill()
 
       t += 0.016
-      animationId = requestAnimationFrame(draw)
+      animId = requestAnimationFrame(draw)
     }
 
+    const ro = new ResizeObserver(resize)
+    ro.observe(canvas)
     resize()
-    window.addEventListener("resize", resize)
     draw()
 
     return () => {
-      cancelAnimationFrame(animationId)
-      window.removeEventListener("resize", resize)
+      cancelAnimationFrame(animId)
+      ro.disconnect()
     }
   }, [])
 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 h-full w-full"
+      className="absolute inset-0 h-full w-full rounded-sm"
       aria-hidden="true"
     />
   )
