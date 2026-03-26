@@ -132,7 +132,8 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       {/* CRT vignette */}
       <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%)", zIndex: 11 }} />
 
-      <div className="relative z-20 flex h-full flex-col items-center justify-between px-4 py-8">
+      {/* Content — safe-top ensures content clears the status bar on all devices */}
+      <div className="safe-top relative z-20 flex h-full flex-col items-center justify-between px-4 pb-8">
         {/* Studio tag */}
         <div className="flex items-center gap-2 rounded px-3 py-1"
           style={{ opacity: phase === "enter" ? 0 : 1, transition: "opacity 0.4s ease-out 0.1s", backgroundColor: "#1a2a1a", border: "1px solid #2a4a2a" }}>

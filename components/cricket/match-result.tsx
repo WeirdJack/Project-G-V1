@@ -253,7 +253,7 @@ export function MatchResult({ state, onRestart, onQuit }: MatchResultProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-6"
+      className="safe-top fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4"
       style={{ backgroundColor: "#070e06" }}
     >
       {/* Confetti */}

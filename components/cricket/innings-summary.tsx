@@ -16,7 +16,7 @@ export function InningsSummary({ state, onContinue }: InningsSummaryProps) {
   const target = (state.target ?? 0) + 1
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-sm">
+    <div className="safe-top fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-sm">
       <div
         className="flex w-full max-w-md flex-col gap-6 rounded-2xl border border-border/50 bg-card/95 p-6 shadow-2xl"
         style={{

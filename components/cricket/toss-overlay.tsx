@@ -313,7 +313,7 @@ export function TossOverlay({ state, onCall }: TossOverlayProps) {
   if (!state.toss) {
     const team1Name = state.team1.name
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm">
+      <div className="safe-top fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm">
         <div
           className="relative z-10 mx-4 flex w-full max-w-xs flex-col items-center gap-5 rounded-2xl border border-white/10 bg-card/95 px-6 py-7 shadow-2xl"
           style={{ animation: "toss-in 0.45s cubic-bezier(0.34,1.3,0.64,1)" }}
@@ -363,7 +363,7 @@ export function TossOverlay({ state, onCall }: TossOverlayProps) {
   const coinResult: "heads" | "tails" = state.toss.winner === "team1" ? "heads" : "tails"
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm">
+    <div className="safe-top fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm">
       <div
         className="relative z-10 mx-4 flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-white/10 bg-card/95 px-5 py-5 shadow-2xl"
         style={{
