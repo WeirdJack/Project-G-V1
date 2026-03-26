@@ -18,10 +18,13 @@ import { InningsSummary } from "./innings-summary"
 import { MatchResult } from "./match-result"
 import { DuckWalk } from "./duck-walk"
 
+import type { GameMode } from "@/lib/cricket-game/types"
+
 export function CricketGame() {
-  const { state, startMatch, rollDice, startNextInnings, restart } = useCricketGame()
+  const { state, startMatch, callToss, rollDice, startNextInnings, restart } = useCricketGame()
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [showSplash, setShowSplash] = useState(true)
+  const [gameMode, setGameMode] = useState<GameMode>("local")
   useGameSounds(state, soundEnabled)
 
   // Start bg music when on setup page, stop when match starts
@@ -34,9 +37,9 @@ export function CricketGame() {
     return () => { stopBackgroundMusic() }
   }, [showSplash, state.phase, soundEnabled])
 
-  const handleSplashComplete = useCallback(() => {
-    // Unlock audio on first user interaction (required for iOS/Android)
+  const handleSplashComplete = useCallback((mode: GameMode) => {
     unlockAudio()
+    setGameMode(mode)
     setShowSplash(false)
   }, [])
 
@@ -47,12 +50,12 @@ export function CricketGame() {
 
   // Setup phase
   if (state.phase === "setup") {
-    return <MatchSetup onStart={startMatch} />
+    return <MatchSetup onStart={startMatch} mode={gameMode} />
   }
 
-  // Toss phase (overlay on top of batting layout)
+  // Toss phase
   if (state.phase === "toss") {
-    return <TossOverlay state={state} />
+    return <TossOverlay state={state} onCall={callToss} />
   }
 
   // Innings break

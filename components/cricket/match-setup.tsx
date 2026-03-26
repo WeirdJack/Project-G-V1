@@ -26,6 +26,7 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 
 interface MatchSetupProps {
   onStart: (config: MatchConfig) => void
+  mode: GameMode
 }
 
 // ── Role icon SVGs ──────────────────────────────────────────────────────────
@@ -144,8 +145,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export function MatchSetup({ onStart }: MatchSetupProps) {
-  const [mode, setMode] = useState<GameMode>("local")
+export function MatchSetup({ onStart, mode }: MatchSetupProps) {
   const [overs, setOvers] = useState<OversOption>(5)
   const [playersPerTeam, setPlayersPerTeam] = useState<number>(DEFAULT_PLAYERS_PER_TEAM)
   const [team1Name, setTeam1Name] = useState(DEFAULT_TEAM_NAMES.team1)
@@ -312,27 +312,6 @@ export function MatchSetup({ onStart }: MatchSetupProps) {
           className="flex flex-col gap-5 rounded-xl border p-5"
           style={{ borderColor: "#2a4a1a", backgroundColor: "#0f1a0c" }}
         >
-          {/* Game Mode */}
-          <div className="flex flex-col gap-2">
-            <SectionHeader>Game Mode</SectionHeader>
-            <div className="flex gap-2">
-              {(["local", "cpu"] as GameMode[]).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className="flex-1 rounded-lg border py-2.5 font-mono text-sm font-semibold transition-all"
-                  style={{
-                    borderColor: mode === m ? "#4a8a3a" : "#2a3a1a",
-                    backgroundColor: mode === m ? "#1a3a12" : "transparent",
-                    color: mode === m ? "#8fda6a" : "#5a7a4a",
-                  }}
-                >
-                  {m === "local" ? "2 Players" : "vs CPU"}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Format + Players */}
           <div className="flex gap-3">
             <div className="flex flex-1 flex-col gap-1.5">
