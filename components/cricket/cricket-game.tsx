@@ -90,7 +90,7 @@ export function CricketGame() {
       </header>
 
       {/* Main game area - responsive spacing */}
-      <div className="flex flex-1 flex-col items-center justify-start overflow-hidden gap-0 px-2 py-0 sm:justify-between sm:gap-2 sm:py-3">
+      <div className="flex flex-1 flex-col items-center justify-start overflow-hidden gap-1.5 px-2 py-1 sm:justify-between sm:gap-2 sm:py-3">
         {/* Umpire + Commentary side by side at the top */}
         <div className="flex w-full items-stretch justify-center gap-1 sm:gap-3 shrink-0">
           <div className="flex shrink-0 flex-col items-center">
