@@ -16,26 +16,26 @@ export function ScoreboardTeam({ state }: ScoreboardProps) {
 
   return (
     <div 
-      className="absolute top-2 left-2 pointer-events-auto flex flex-col items-start rounded-md bg-background/95 px-1.5 py-1 backdrop-blur-sm border sm:top-3 sm:left-3 sm:px-2 sm:py-1.5"
+      className="absolute top-3 left-3 pointer-events-auto flex flex-col items-start rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
       style={{ borderColor: battingColor }}
     >
       <div className="flex items-center gap-1">
         <span
-          className="h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2"
+          className="h-2 w-2 rounded-full"
           style={{ backgroundColor: battingColor }}
         />
         <span 
-          className="font-sans text-[9px] font-bold sm:text-[11px]"
+          className="font-sans text-[11px] font-bold"
           style={{ color: battingColor }}
         >
           {batting.name}
         </span>
       </div>
-      <div className="flex items-baseline gap-0.5">
-        <span className="font-mono text-sm font-bold text-foreground leading-tight sm:text-lg">
+      <div className="flex items-baseline gap-1">
+        <span className="font-mono text-lg font-bold text-foreground leading-tight">
           {batting.totalRuns}/{batting.wickets}
         </span>
-        <span className="font-mono text-[8px] text-muted-foreground">
+        <span className="font-mono text-[9px] text-muted-foreground">
           ({oversStr})
         </span>
       </div>
@@ -51,9 +51,9 @@ export function ScoreboardTarget({ state }: ScoreboardProps) {
   // Only show in 2nd innings when chasing
   if (state.currentInnings !== 2 || state.target === null) {
   return (
-    <div className="absolute top-2 right-2 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-1.5 py-1 backdrop-blur-sm border border-cyan-500/60 sm:top-3 sm:right-3 sm:px-2 sm:py-1.5">
-      <span className="font-sans text-[8px] text-muted-foreground sm:text-[9px]">Innings</span>
-      <span className="font-mono text-xs font-bold text-foreground sm:text-sm">{state.currentInnings}</span>
+    <div className="absolute top-3 right-3 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border border-cyan-500/60">
+      <span className="font-sans text-[9px] text-muted-foreground">Innings</span>
+      <span className="font-mono text-sm font-bold text-foreground">{state.currentInnings}</span>
     </div>
   )
   }
@@ -64,13 +64,13 @@ export function ScoreboardTarget({ state }: ScoreboardProps) {
     : (state.config.overs as number) * 6 - (batting.overs * 6 + batting.balls)
 
   return (
-    <div className="absolute top-2 right-2 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-1.5 py-1 backdrop-blur-sm border border-amber-500/70 sm:top-3 sm:right-3 sm:px-2 sm:py-1.5">
-      <span className="font-sans text-[8px] text-muted-foreground sm:text-[9px]">Target</span>
-      <span className="font-mono text-xs font-bold text-amber-400 leading-tight sm:text-sm">
+    <div className="absolute top-3 right-3 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border border-amber-500/70">
+      <span className="font-sans text-[9px] text-muted-foreground">Target</span>
+      <span className="font-mono text-sm font-bold text-amber-400 leading-tight">
         {remaining > 0 ? `Need ${remaining}` : "Won!"}
       </span>
       {ballsLeft !== null && remaining > 0 && (
-        <span className="font-mono text-[7px] text-muted-foreground sm:text-[8px]">
+        <span className="font-mono text-[8px] text-muted-foreground">
           from {ballsLeft} balls
         </span>
       )}
@@ -87,31 +87,31 @@ export function ScoreboardBatter({ state }: ScoreboardProps) {
 
   return (
     <div 
-      className="absolute bottom-2 left-2 pointer-events-auto flex flex-col items-start rounded-md bg-background/95 px-1.5 py-1 backdrop-blur-sm border sm:bottom-3 sm:left-3 sm:px-2 sm:py-1.5"
+      className="absolute bottom-3 left-3 pointer-events-auto flex flex-col items-start rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
       style={{ borderColor: battingColor }}
     >
       {/* Striker */}
       {striker && !striker.isOut && (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <span 
-            className="font-sans text-[9px] font-bold truncate max-w-[36px] sm:text-[10px] sm:max-w-[45px]"
+            className="font-sans text-[10px] font-bold truncate max-w-[45px]"
             style={{ color: battingColor }}
           >
             {striker.name}*
           </span>
-          <span className="font-mono text-xs font-bold leading-none sm:text-sm" style={{ color: battingColor }}>
+          <span className="font-mono text-sm font-bold leading-none" style={{ color: battingColor }}>
             {striker.runs}
-            <span className="text-[7px] text-muted-foreground font-normal sm:text-[8px]">({striker.ballsFaced})</span>
+            <span className="text-[8px] text-muted-foreground font-normal">({striker.ballsFaced})</span>
           </span>
         </div>
       )}
       {/* Non-striker */}
       {nonStriker && !nonStriker.isOut && nonStriker.id !== striker?.id && (
-        <div className="flex items-center gap-1 opacity-60">
-          <span className="font-sans text-[7px] text-muted-foreground truncate max-w-[32px] sm:text-[8px] sm:max-w-[40px]">
+        <div className="flex items-center gap-1.5 opacity-60">
+          <span className="font-sans text-[8px] text-muted-foreground truncate max-w-[40px]">
             {nonStriker.name}
           </span>
-          <span className="font-mono text-[9px] text-muted-foreground sm:text-[10px]">
+          <span className="font-mono text-[10px] text-muted-foreground">
             {nonStriker.runs}({nonStriker.ballsFaced})
           </span>
         </div>
@@ -130,12 +130,12 @@ export function ScoreboardBowler({ state }: ScoreboardProps) {
 
   return (
     <div 
-      className="absolute bottom-2 right-2 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-1.5 py-1 backdrop-blur-sm border sm:bottom-3 sm:right-3 sm:px-2 sm:py-1.5"
+      className="absolute bottom-3 right-3 pointer-events-auto flex flex-col items-end rounded-md bg-background/95 px-2 py-1.5 backdrop-blur-sm border"
       style={{ borderColor: bowlingColor }}
     >
-      <span className="font-sans text-[8px] text-muted-foreground sm:text-[9px]">Bowling</span>
+      <span className="font-sans text-[9px] text-muted-foreground">Bowling</span>
       <span 
-        className="font-sans text-[9px] font-bold sm:text-[10px]"
+        className="font-sans text-[10px] font-bold"
         style={{ color: bowlingColor }}
       >
         {bowling.name}
