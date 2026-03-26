@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
 import type { GameState } from "@/lib/cricket-game/types"
 import { TEAM_1_COLOR, TEAM_2_COLOR } from "@/lib/cricket-game/constants"
 import { getOverString } from "@/lib/cricket-game/game-engine"
@@ -12,123 +11,216 @@ interface MatchResultProps {
 }
 
 interface Particle {
-  x: number
-  y: number
-  vx: number
-  vy: number
-  life: number
-  color: string
-  size: number
+  x: number; y: number; vx: number; vy: number
+  life: number; color: string; size: number; shape: "rect" | "circle"
 }
 
-/* Animated trophy SVG */
-function TrophyAnimation({ color, isTie }: { color: string; isTie: boolean }) {
+// ── Cricket Trophy SVG ───────────────────────────────────────────────────────
+
+function CricketTrophy({ color, isTie }: { color: string; isTie: boolean }) {
+  const c = isTie ? "#aaa" : color
   return (
-    <div
-      className="flex items-center justify-center"
-      style={{ animation: "trophy-bounce 0.7s cubic-bezier(0.34,1.56,0.64,1) both" }}
-    >
-      <svg
-        viewBox="0 0 100 110"
-        width="96"
-        height="106"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
+    <div style={{ animation: "trophy-drop 0.8s cubic-bezier(0.34,1.4,0.64,1) both" }}>
+      <svg viewBox="0 0 110 120" width="100" height="110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         {/* Glow */}
-        <ellipse
-          cx="50" cy="55"
-          rx="40" ry="42"
-          fill={isTie ? "#aaaaaa" : color}
-          style={{ opacity: 0.12, filter: "blur(12px)" }}
-        />
-        {/* Base plate */}
-        <rect x="28" y="95" width="44" height="8" rx="3" fill={isTie ? "#888" : color} stroke="#1a1a00" strokeWidth="2" />
+        <ellipse cx="55" cy="60" rx="45" ry="50" fill={c} opacity="0.08" />
+        {/* Base */}
+        <rect x="28" y="100" width="54" height="10" rx="4" fill={c} stroke="#111" strokeWidth="2" />
+        <rect x="34" y="96" width="42" height="6" rx="2" fill={c} stroke="#111" strokeWidth="1.5" />
         {/* Stem */}
-        <rect x="42" y="80" width="16" height="18" rx="2" fill={isTie ? "#aaa" : color} stroke="#1a1a00" strokeWidth="2" />
+        <rect x="44" y="82" width="22" height="16" rx="3" fill={c} stroke="#111" strokeWidth="2" />
         {/* Cup body */}
-        <path
-          d="M20,12 Q16,50 34,72 Q42,80 50,80 Q58,80 66,72 Q84,50 80,12 Z"
-          fill={isTie ? "#cccccc" : color}
-          stroke="#1a1a00"
-          strokeWidth="2.5"
-        />
-        {/* Handles */}
-        <path d="M20,20 Q8,30 10,48 Q12,60 24,64" stroke={isTie ? "#bbb" : color} strokeWidth="7" fill="none" strokeLinecap="round" />
-        <path d="M20,20 Q8,30 10,48 Q12,60 24,64" stroke="#1a1a00" strokeWidth="10" fill="none" strokeLinecap="round" style={{ opacity: 0.3 }} />
-        <path d="M80,20 Q92,30 90,48 Q88,60 76,64" stroke={isTie ? "#bbb" : color} strokeWidth="7" fill="none" strokeLinecap="round" />
-        <path d="M80,20 Q92,30 90,48 Q88,60 76,64" stroke="#1a1a00" strokeWidth="10" fill="none" strokeLinecap="round" style={{ opacity: 0.3 }} />
+        <path d="M20,14 Q15,56 36,76 Q44,84 55,84 Q66,84 74,76 Q95,56 90,14 Z"
+          fill={c} stroke="#111" strokeWidth="3" />
         {/* Cup shine */}
-        <path d="M34,20 Q36,50 42,68" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" style={{ opacity: 0.3 }} />
-        {/* Star on cup */}
-        <polygon
-          points="50,26 53,35 63,35 55,41 58,50 50,44 42,50 45,41 37,35 47,35"
-          fill="white"
-          style={{ opacity: isTie ? 0.3 : 0.85 }}
-        />
-        {/* Sparkles around trophy */}
-        <g style={{ animation: "trophy-sparkle 1.4s ease-in-out infinite" }}>
+        <path d="M34,22 Q36,52 42,72" stroke="#fff" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.25" />
+        {/* Inner shadow */}
+        <path d="M76,14 Q85,50 76,72 Q68,80 60,82" stroke="#000" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.1" />
+        {/* Handles */}
+        <path d="M20,22 Q6,34 8,54 Q10,68 26,74" stroke={c} strokeWidth="9" fill="none" strokeLinecap="round" />
+        <path d="M20,22 Q6,34 8,54 Q10,68 26,74" stroke="#111" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.4" />
+        <path d="M90,22 Q104,34 102,54 Q100,68 84,74" stroke={c} strokeWidth="9" fill="none" strokeLinecap="round" />
+        <path d="M90,22 Q104,34 102,54 Q100,68 84,74" stroke="#111" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.4" />
+        {/* Cricket ball on top */}
+        <circle cx="55" cy="14" r="12" fill="#c0392b" stroke="#111" strokeWidth="2" />
+        <path d="M50,6 Q54,14 50,22" stroke="#f5f5dc" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <path d="M60,6 Q56,14 60,22" stroke="#f5f5dc" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <ellipse cx="48" cy="10" rx="4" ry="2" fill="#fff" opacity="0.15" transform="rotate(-20,48,10)" />
+        {/* Star */}
+        <polygon points="55,30 57.5,38 66,38 59,43 61.5,52 55,47 48.5,52 51,43 44,38 52.5,38"
+          fill="#fff" opacity={isTie ? 0.3 : 0.9} />
+        {/* Animated sparkles */}
+        <g style={{ animation: "sparkle 1.6s ease-in-out infinite" }}>
           <line x1="12" y1="10" x2="12" y2="2"  stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
           <line x1="8"  y1="14" x2="2"  y2="14" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
-          <line x1="88" y1="10" x2="88" y2="2"  stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
-          <line x1="92" y1="14" x2="98" y2="14" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
-          <line x1="50" y1="4"  x2="50" y2="0"  stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+          <line x1="98" y1="10" x2="98" y2="2"  stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+          <line x1="102" y1="14" x2="108" y2="14" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+          <line x1="55" y1="2" x2="55" y2="-3" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
         </g>
       </svg>
-
       <style jsx>{`
-        @keyframes trophy-bounce {
-          0%   { opacity: 0; transform: scale(0.3) translateY(30px) rotate(-8deg); }
-          60%  { opacity: 1; transform: scale(1.12) translateY(-8px) rotate(3deg); }
-          80%  { transform: scale(0.96) translateY(2px) rotate(-1deg); }
-          100% { opacity: 1; transform: scale(1) translateY(0) rotate(0deg); }
+        @keyframes trophy-drop {
+          0% { opacity:0; transform: scale(0.3) translateY(-40px) rotate(-10deg); }
+          65% { opacity:1; transform: scale(1.1) translateY(6px) rotate(2deg); }
+          80% { transform: scale(0.95) translateY(-2px) rotate(-0.5deg); }
+          100% { opacity:1; transform: scale(1) translateY(0) rotate(0deg); }
         }
-        @keyframes trophy-sparkle {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50%       { opacity: 0.3; transform: scale(0.7); }
+        @keyframes sparkle {
+          0%,100% { opacity:1; transform:scale(1); }
+          50% { opacity:0.2; transform:scale(0.6); }
         }
       `}</style>
     </div>
   )
 }
 
+// ── Scorebook row ─────────────────────────────────────────────────────────────
+
+function ScorebookCard({
+  teamKey, state, isFirst,
+}: { teamKey: "team1" | "team2"; state: GameState; isFirst: boolean }) {
+  const team = state[teamKey]
+  const color = teamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
+  const topBatters = team.players
+    .filter((p) => p.ballsFaced > 0)
+    .sort((a, b) => b.runs - a.runs)
+    .slice(0, 3)
+  const topBowlers = state[teamKey === "team1" ? "team2" : "team1"].players
+    .filter((p) => p.role === "bowl" || p.role === "all")
+    .slice(0, 2)
+
+  return (
+    <div
+      className="flex flex-col gap-2 overflow-hidden rounded-xl"
+      style={{
+        border: `1.5px solid ${color}44`,
+        backgroundColor: `${color}08`,
+        boxShadow: `inset 3px 0 0 ${color}`,
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-3">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+          <span className="font-sans text-sm font-bold text-foreground">{team.name}</span>
+          <span className="rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider"
+            style={{ backgroundColor: color + "20", color }}>
+            {isFirst ? "1st Innings" : "2nd Innings"}
+          </span>
+        </div>
+      </div>
+
+      {/* Score line */}
+      <div className="flex items-baseline gap-2 px-4">
+        <span className="font-mono text-3xl font-black tracking-tight text-foreground">
+          {team.totalRuns}/{team.wickets}
+        </span>
+        <span className="font-mono text-xs text-muted-foreground">
+          ({getOverString(team.overs, team.balls)} ov)
+        </span>
+      </div>
+
+      {/* Top batters */}
+      {topBatters.length > 0 && (
+        <div className="flex flex-col gap-0 px-4 pb-2">
+          <div className="mb-1 flex items-center gap-2">
+            <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${color}44, transparent)` }} />
+            <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color }}>Batting</span>
+          </div>
+          {topBatters.map((p) => (
+            <div key={p.id} className="flex items-center justify-between py-0.5">
+              <div className="flex items-center gap-2">
+                <span className="font-sans text-xs text-foreground">{p.name}</span>
+                {p.isOut && (
+                  <span className="rounded font-mono text-[8px] uppercase tracking-wide"
+                    style={{ color: "#ff6666", backgroundColor: "#ff666618" }}>out</span>
+                )}
+              </div>
+              <span className="font-mono text-xs font-bold text-foreground">
+                {p.runs}
+                <span className="font-normal text-muted-foreground"> ({p.ballsFaced})</span>
+              </span>
+            </div>
+          ))}
+          {/* Extras */}
+          <div className="flex items-center justify-between border-t pt-1" style={{ borderColor: color + "22" }}>
+            <span className="font-mono text-[10px] text-muted-foreground">Extras</span>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              W:{team.extras.wides} NB:{team.extras.noBalls}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Wickets graphic for result page ─────────────────────────────────────────
+
+function ResultWickets({ hit }: { hit: boolean }) {
+  return (
+    <svg viewBox="0 0 80 40" width="64" height="32" aria-hidden="true">
+      {[14, 40, 66].map((x, i) => (
+        <g key={x}
+          style={hit && i === 1 ? { animation: "wicket-fall 0.6s ease-out 0.4s both" } : undefined}
+          transform={hit && i === 1 ? undefined : undefined}
+        >
+          <rect x={x - 3} y="4" width="6" height="26" rx="3" fill="#d4c08a" stroke="#8a7a40" strokeWidth="1.5" />
+          <rect x={x - 6} y="2" width="12" height="5" rx="2.5" fill="#d4c08a" stroke="#8a7a40" strokeWidth="1.5" />
+        </g>
+      ))}
+      {/* Bails */}
+      <rect x="10" y="4" width="12" height="2" rx="1" fill={hit ? "#888" : "#f0d060"} />
+      <rect x="58" y="4" width="12" height="2" rx="1" fill="#f0d060" />
+      {/* Pitch */}
+      <rect x="0" y="30" width="80" height="4" rx="2" fill="#3a5a2a" />
+      <rect x="0" y="30" width="80" height="2" rx="1" fill="#4a7a3a" />
+      <style jsx>{`
+        @keyframes wicket-fall {
+          0% { transform: rotate(0deg); transform-origin: 40px 30px; }
+          100% { transform: rotate(45deg); transform-origin: 40px 30px; }
+        }
+      `}</style>
+    </svg>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export function MatchResult({ state, onRestart }: MatchResultProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const particlesRef = useRef<Particle[]>([])
 
-  // Determine winner info
-  const isTie = state.result?.includes("Tied")
-  const winnerKey =
-    state.team1.totalRuns > state.team2.totalRuns ? "team1" : "team2"
-  const winnerColor = winnerKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
+  const isTie = state.result?.includes("Tied") || state.result?.includes("Tie")
+  const winnerKey = state.team1.totalRuns >= state.team2.totalRuns ? "team1" : "team2"
+  const winnerColor = isTie ? "#aaaaaa" : (winnerKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR)
 
-  // Confetti particles
+  // Confetti effect
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    const colors = [TEAM_1_COLOR, TEAM_2_COLOR, "#ffe066", "#ff6666", "#bb88ee"]
+    const colors = [TEAM_1_COLOR, TEAM_2_COLOR, "#ffe066", "#ff6666", "#88ddff", "#ccff88"]
     const dpr = window.devicePixelRatio || 1
 
-    function spawnParticles() {
-      for (let i = 0; i < 60; i++) {
+    function spawn() {
+      for (let i = 0; i < 50; i++) {
         particlesRef.current.push({
           x: Math.random() * (canvas?.clientWidth || 400),
-          y: -10 - Math.random() * 50,
-          vx: (Math.random() - 0.5) * 4,
-          vy: Math.random() * 3 + 1,
+          y: -10 - Math.random() * 40,
+          vx: (Math.random() - 0.5) * 5,
+          vy: Math.random() * 3 + 1.5,
           life: 1,
           color: colors[Math.floor(Math.random() * colors.length)],
-          size: Math.random() * 4 + 2,
+          size: Math.random() * 5 + 2,
+          shape: Math.random() > 0.5 ? "rect" : "circle",
         })
       }
     }
-
-    spawnParticles()
-    const spawnInterval = setInterval(spawnParticles, 2000)
-
+    spawn()
+    const spawnInterval = setInterval(spawn, 2000)
     let frameId: number
 
     function animate() {
@@ -138,139 +230,97 @@ export function MatchResult({ state, onRestart }: MatchResultProps) {
       canvas.height = rect.height * dpr
       ctx.scale(dpr, dpr)
       ctx.clearRect(0, 0, rect.width, rect.height)
-
-      particlesRef.current = particlesRef.current.filter((p) => p.life > 0)
-
+      particlesRef.current = particlesRef.current.filter((p) => p.life > 0.02)
       for (const p of particlesRef.current) {
-        p.x += p.vx
-        p.y += p.vy
-        p.vy += 0.03
-        p.vx *= 0.99
-        p.life -= 0.005
-
+        p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.vx *= 0.99; p.life -= 0.006
         ctx.globalAlpha = p.life
         ctx.fillStyle = p.color
-        ctx.fillRect(p.x, p.y, p.size, p.size * 1.5)
+        if (p.shape === "circle") {
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2)
+          ctx.fill()
+        } else {
+          ctx.fillRect(p.x, p.y, p.size, p.size * 1.6)
+        }
       }
-
       ctx.globalAlpha = 1
       frameId = requestAnimationFrame(animate)
     }
-
     frameId = requestAnimationFrame(animate)
-    return () => {
-      cancelAnimationFrame(frameId)
-      clearInterval(spawnInterval)
-    }
+    return () => { cancelAnimationFrame(frameId); clearInterval(spawnInterval) }
   }, [])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4">
-      {/* Confetti canvas */}
-      <canvas
-        ref={canvasRef}
-        className="pointer-events-none absolute inset-0 h-full w-full"
-      />
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-6"
+      style={{ backgroundColor: "#070e06" }}
+    >
+      {/* Confetti */}
+      <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+
+      {/* Scanlines */}
+      <div className="pointer-events-none absolute inset-0"
+        style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 6px)" }} />
 
       <div
-        className="relative z-10 flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border border-border/50 bg-card/95 p-6 shadow-2xl backdrop-blur-sm"
-        style={{
-          animation: "result-in 0.6s ease-out",
-          boxShadow: isTie ? undefined : `0 0 60px ${winnerColor}20`,
-        }}
+        className="relative z-10 flex w-full max-w-md flex-col items-center gap-5"
+        style={{ animation: "result-rise 0.55s ease-out both" }}
       >
-        {/* Trophy */}
-        <TrophyAnimation color={winnerColor} isTie={!!isTie} />
-
-        {/* Result text */}
-        <div className="flex flex-col items-center gap-2">
-          <p className="font-sans text-xs uppercase tracking-wider text-muted-foreground">
-            Match Result
-          </p>
-          <h2
-            className="text-balance text-center font-sans text-xl font-bold sm:text-2xl"
-            style={{ color: isTie ? undefined : winnerColor }}
-          >
-            {state.result}
-          </h2>
+        {/* Header bar */}
+        <div className="flex w-full items-center justify-center gap-3 rounded-xl border px-5 py-3"
+          style={{ borderColor: winnerColor + "44", backgroundColor: winnerColor + "10" }}>
+          <ResultWickets hit={!isTie} />
+          <div className="flex flex-col items-center gap-0">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: winnerColor }}>
+              Match Result
+            </span>
+            <h1 className="text-balance text-center font-sans text-lg font-black sm:text-xl"
+              style={{ color: isTie ? "#ddd" : winnerColor, textShadow: `0 0 20px ${winnerColor}44` }}>
+              {state.result}
+            </h1>
+          </div>
+          <ResultWickets hit={false} />
         </div>
 
-        {/* Both scorecards */}
+        {/* Trophy */}
+        <CricketTrophy color={winnerColor} isTie={!!isTie} />
+
+        {/* Scorebooks */}
         <div className="flex w-full flex-col gap-3">
-          {(["team1", "team2"] as const).map((key) => {
-            const team = state[key]
-            const color = key === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
-            const isFirst = key === state.firstBattingTeamKey
-
-            return (
-              <div
-                key={key}
-                className="flex flex-col gap-2 rounded-xl border border-border/30 bg-secondary/30 p-4"
-                style={{ borderLeftColor: color, borderLeftWidth: 3 }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: color }}
-                    />
-                    <span className="font-sans text-sm font-medium text-foreground">
-                      {team.name}
-                    </span>
-                  </div>
-                  <span className="font-sans text-xs text-muted-foreground">
-                    {isFirst ? "1st Bat" : "2nd Bat"}
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-mono text-2xl font-bold text-foreground">
-                    {team.totalRuns}/{team.wickets}
-                  </span>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    ({getOverString(team.overs, team.balls)} ov)
-                  </span>
-                </div>
-
-                {/* Top scorer */}
-                {team.players.filter((p) => p.ballsFaced > 0).length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {team.players
-                      .filter((p) => p.ballsFaced > 0)
-                      .sort((a, b) => b.runs - a.runs)
-                      .slice(0, 3)
-                      .map((p) => (
-                        <span
-                          key={p.id}
-                          className="font-sans text-xs text-muted-foreground"
-                        >
-                          {p.name}{" "}
-                          <span className="font-mono font-medium text-foreground">
-                            {p.runs}
-                          </span>
-                          ({p.ballsFaced})
-                        </span>
-                      ))}
-                  </div>
-                )}
-              </div>
-            )
-          })}
+          {(["team1", "team2"] as const).map((key) => (
+            <ScorebookCard
+              key={key}
+              teamKey={key}
+              state={state}
+              isFirst={key === state.firstBattingTeamKey}
+            />
+          ))}
         </div>
 
         {/* Play again */}
-        <Button
-          size="lg"
+        <button
           onClick={onRestart}
-          className="w-full bg-primary font-sans text-sm font-semibold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
+          className="w-full rounded-xl border py-3.5 font-mono text-sm font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98]"
+          style={{
+            borderColor: "#4a8a3a",
+            backgroundColor: "#1a3a12",
+            color: "#8fda6a",
+            boxShadow: "0 0 20px #3a7a2a22",
+          }}
         >
           Play Again
-        </Button>
+        </button>
+
+        {/* Footer tag */}
+        <p className="pb-2 font-mono text-[9px] uppercase tracking-widest" style={{ color: "#2a4a2a" }}>
+          Kriklu Cricket Board Game &mdash; 2025
+        </p>
       </div>
 
       <style jsx>{`
-        @keyframes result-in {
-          0% { opacity: 0; transform: scale(0.85) translateY(30px); }
-          100% { opacity: 1; transform: scale(1) translateY(0); }
+        @keyframes result-rise {
+          0% { opacity:0; transform: translateY(30px); }
+          100% { opacity:1; transform: translateY(0); }
         }
       `}</style>
     </div>

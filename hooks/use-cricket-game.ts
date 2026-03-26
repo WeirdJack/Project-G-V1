@@ -154,13 +154,18 @@ export function useCricketGame() {
 
   const startMatch = useCallback((config: MatchConfig) => {
     dispatch({ type: "START_MATCH", config })
-    const toss = performToss()
+    // Toss is now triggered by user call via callToss()
+  }, [])
+
+  const callToss = useCallback((_call: "heads" | "tails") => {
+    // Perform toss after a short delay to let coin spin
     setTimeout(() => {
+      const toss = performToss()
       dispatch({ type: "SET_TOSS", toss })
       setTimeout(() => {
         dispatch({ type: "COMPLETE_TOSS" })
-      }, 2500)
-    }, 500)
+      }, 3500)
+    }, 400)
   }, [])
 
   const handleRollDice = useCallback(() => {
@@ -235,6 +240,7 @@ export function useCricketGame() {
   return {
     state,
     startMatch,
+    callToss,
     rollDice: handleRollDice,
     startNextInnings,
     restart,
