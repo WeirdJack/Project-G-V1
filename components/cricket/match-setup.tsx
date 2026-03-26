@@ -277,7 +277,7 @@ export function MatchSetup({ onStart, mode, onQuit }: MatchSetupProps) {
 
   return (
     <div
-      className="flex min-h-screen items-start justify-center overflow-y-auto p-4 sm:items-center"
+      className="safe-top flex min-h-screen items-start justify-center overflow-y-auto p-4 sm:items-center"
       style={{ backgroundColor: "#0a1208" }}
     >
       <div className="flex w-full max-w-md flex-col gap-5 py-4">
