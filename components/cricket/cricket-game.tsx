@@ -5,6 +5,7 @@ import { useCricketGame } from "@/hooks/use-cricket-game"
 import { useGameSounds } from "@/hooks/use-game-sounds"
 import { startBackgroundMusic, stopBackgroundMusic, unlockAudio } from "@/lib/cricket-game/sound-engine"
 import { Volume2, VolumeX } from "lucide-react"
+import { CricketFieldBg } from "./cricket-field-bg"
 import { SplashScreen } from "./splash-screen"
 import { MatchSetup } from "./match-setup"
 import { TossOverlay } from "./toss-overlay"
@@ -65,9 +66,14 @@ export function CricketGame() {
 
   // Batting phase - main game UI
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-background" onClick={unlockAudio}>
+    <div className="relative flex h-full w-full flex-col overflow-hidden" onClick={unlockAudio}>
+      {/* Animated cricket field background */}
+      <CricketFieldBg />
+
+      {/* Content above the background */}
+      <div className="relative z-10 flex h-full w-full flex-col">
       {/* Top bar */}
-      <header className="flex shrink-0 items-center justify-between border-b border-border/30 px-4 py-2">
+      <header className="flex shrink-0 items-center justify-between border-b border-white/10 bg-black/40 px-4 py-2 backdrop-blur-md">
         <h1 className="font-sans text-sm font-semibold text-foreground">
           Kriklu
         </h1>
@@ -115,6 +121,7 @@ export function CricketGame() {
             <Dice state={state} onRoll={rollDice} />
           </div>
         </div>
+      </div>
       </div>
     </div>
   )
