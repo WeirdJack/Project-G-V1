@@ -109,7 +109,7 @@ export function CricketGame() {
         </div>
 
         {/* Bottom section: This Over + Dice */}
-        <div className="w-full flex flex-col items-center gap-0.5 sm:gap-2 shrink-0">
+        <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 shrink-0">
           <ThisOver state={state} />
           <div className="flex items-center justify-center">
             <Dice state={state} onRoll={rollDice} />
