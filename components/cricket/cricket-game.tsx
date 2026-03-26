@@ -104,6 +104,7 @@ export function CricketGame() {
         </div>
 
         {/* Game board in the middle — duck walk + field bg lives here */}
+        <div className="flex items-center justify-center w-full min-h-0 shrink-0 sm:flex-1">
           <div className="relative w-full max-w-[min(100%,60vh)] sm:max-w-[min(100%,65vh)]">
             <CricketFieldBg />
             <GameBoard state={state} />
