@@ -1,5 +1,5 @@
 /**
- * Sound engine using Web Audio API for cricket SFX
+ * Sound engine using Web Audio API for cricket SFX — v2
  * and SpeechSynthesis API for spoken commentary.
  */
 
