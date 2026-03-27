@@ -16,6 +16,7 @@ type SquareSound =
   | "stumps-hit"
   | "coin-toss"
   | "duck-quack"
+  | "intro"
 
 let audioCtx: AudioContext | null = null
 let audioUnlocked = false
@@ -297,7 +298,44 @@ function playDuckQuack() {
   osc3.stop(ctx.currentTime + 0.92)
 }
 
-function playCoinToss() {  // Realistic coin flip - thumb flick, spinning in air, catching, and slap reveal
+function playIntroJingle() {
+  // Retro 8-bit style cricket fanfare — ascending arpeggio then victory phrase
+  // Arpeggio run up
+  const melody = [
+    { f: 330, t: 0.00, d: 0.12 },
+    { f: 392, t: 0.10, d: 0.12 },
+    { f: 494, t: 0.20, d: 0.12 },
+    { f: 659, t: 0.30, d: 0.18 },
+    // Brief pause then fanfare phrase
+    { f: 523, t: 0.55, d: 0.14 },
+    { f: 587, t: 0.68, d: 0.14 },
+    { f: 659, t: 0.81, d: 0.14 },
+    { f: 784, t: 0.94, d: 0.35 },
+    // Resolution
+    { f: 659, t: 1.32, d: 0.12 },
+    { f: 784, t: 1.43, d: 0.45 },
+  ]
+  melody.forEach(({ f, t, d }) => {
+    playTone(f, d, "square", 0.10, t)
+  })
+  // Bass pulse underneath
+  const bass = [
+    { f: 130, t: 0.00, d: 0.25 },
+    { f: 196, t: 0.30, d: 0.25 },
+    { f: 165, t: 0.55, d: 0.45 },
+    { f: 196, t: 0.94, d: 0.45 },
+    { f: 196, t: 1.43, d: 0.45 },
+  ]
+  bass.forEach(({ f, t, d }) => {
+    playTone(f, d, "triangle", 0.07, t)
+  })
+  // Percussion clicks
+  for (let i = 0; i < 8; i++) {
+    playNoise(0.04, 0.05, i * 0.245)
+  }
+}
+
+function playCoinToss() {
   const ctx = getCtx()
   
   // Initial thumb flick - sharp metallic ping
@@ -373,6 +411,9 @@ export function playSound(type: SquareSound) {
         break
       case "duck-quack":
         playDuckQuack()
+        break
+      case "intro":
+        playIntroJingle()
         break
       case "coin-toss":
         playCoinToss()

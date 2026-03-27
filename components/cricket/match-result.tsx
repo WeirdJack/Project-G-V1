@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { GameState } from "@/lib/cricket-game/types"
 import { TEAM_1_COLOR, TEAM_2_COLOR } from "@/lib/cricket-game/constants"
 import { getOverString } from "@/lib/cricket-game/game-engine"
+import { ScorecardModal } from "./scorecard"
 
 interface MatchResultProps {
   state: GameState
@@ -82,77 +83,86 @@ function ScorebookCard({
 }: { teamKey: "team1" | "team2"; state: GameState; isFirst: boolean }) {
   const team = state[teamKey]
   const color = teamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
+  const [showScorecard, setShowScorecard] = useState(false)
   const topBatters = team.players
     .filter((p) => p.ballsFaced > 0)
     .sort((a, b) => b.runs - a.runs)
     .slice(0, 3)
-  const topBowlers = state[teamKey === "team1" ? "team2" : "team1"].players
-    .filter((p) => p.role === "bowl" || p.role === "all")
-    .slice(0, 2)
 
   return (
-    <div
-      className="flex flex-col gap-2 overflow-hidden rounded-xl"
-      style={{
-        border: `1.5px solid ${color}44`,
-        backgroundColor: `${color}08`,
-        boxShadow: `inset 3px 0 0 ${color}`,
-      }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-3">
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
-          <span className="font-sans text-sm font-bold text-foreground">{team.name}</span>
-          <span className="rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider"
-            style={{ backgroundColor: color + "20", color }}>
-            {isFirst ? "1st Innings" : "2nd Innings"}
-          </span>
-        </div>
-      </div>
-
-      {/* Score line */}
-      <div className="flex items-baseline gap-2 px-4">
-        <span className="font-mono text-3xl font-black tracking-tight text-foreground">
-          {team.totalRuns}/{team.wickets}
-        </span>
-        <span className="font-mono text-xs text-muted-foreground">
-          ({getOverString(team.overs, team.balls)} ov)
-        </span>
-      </div>
-
-      {/* Top batters */}
-      {topBatters.length > 0 && (
-        <div className="flex flex-col gap-0 px-4 pb-2">
-          <div className="mb-1 flex items-center gap-2">
-            <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${color}44, transparent)` }} />
-            <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color }}>Batting</span>
-          </div>
-          {topBatters.map((p) => (
-            <div key={p.id} className="flex items-center justify-between py-0.5">
-              <div className="flex items-center gap-2">
-                <span className="font-sans text-xs text-foreground">{p.name}</span>
-                {p.isOut && (
-                  <span className="rounded font-mono text-[8px] uppercase tracking-wide"
-                    style={{ color: "#ff6666", backgroundColor: "#ff666618" }}>out</span>
-                )}
-              </div>
-              <span className="font-mono text-xs font-bold text-foreground">
-                {p.runs}
-                <span className="font-normal text-muted-foreground"> ({p.ballsFaced})</span>
-              </span>
-            </div>
-          ))}
-          {/* Extras */}
-          <div className="flex items-center justify-between border-t pt-1" style={{ borderColor: color + "22" }}>
-            <span className="font-mono text-[10px] text-muted-foreground">Extras</span>
-            <span className="font-mono text-[10px] text-muted-foreground">
-              W:{team.extras.wides} NB:{team.extras.noBalls}
+    <>
+      <div
+        className="flex flex-col gap-2 overflow-hidden rounded-xl"
+        style={{
+          border: `1.5px solid ${color}44`,
+          backgroundColor: `${color}08`,
+          boxShadow: `inset 3px 0 0 ${color}`,
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pt-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+            <span className="font-sans text-sm font-bold text-foreground">{team.name}</span>
+            <span className="rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider"
+              style={{ backgroundColor: color + "20", color }}>
+              {isFirst ? "1st Innings" : "2nd Innings"}
             </span>
           </div>
+          <button
+            onClick={() => setShowScorecard(true)}
+            className="rounded border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider transition-colors hover:opacity-80"
+            style={{ borderColor: color + "55", color, backgroundColor: color + "18" }}
+          >
+            Scorecard
+          </button>
         </div>
+
+        {/* Score line */}
+        <div className="flex items-baseline gap-2 px-4">
+          <span className="font-mono text-3xl font-black tracking-tight text-foreground">
+            {team.totalRuns}/{team.wickets}
+          </span>
+          <span className="font-mono text-xs text-muted-foreground">
+            ({getOverString(team.overs, team.balls)} ov)
+          </span>
+        </div>
+
+        {/* Top batters */}
+        {topBatters.length > 0 && (
+          <div className="flex flex-col gap-0 px-4 pb-2">
+            <div className="mb-1 flex items-center gap-2">
+              <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${color}44, transparent)` }} />
+              <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color }}>Top Batters</span>
+            </div>
+            {topBatters.map((p) => (
+              <div key={p.id} className="flex items-center justify-between py-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-sans text-xs text-foreground">{p.name}</span>
+                  {p.isOut && (
+                    <span className="rounded font-mono text-[8px] uppercase tracking-wide"
+                      style={{ color: "#ff6666", backgroundColor: "#ff666618" }}>out</span>
+                  )}
+                </div>
+                <span className="font-mono text-xs font-bold text-foreground">
+                  {p.runs}
+                  <span className="font-normal text-muted-foreground"> ({p.ballsFaced})</span>
+                </span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between border-t pt-1" style={{ borderColor: color + "22" }}>
+              <span className="font-mono text-[10px] text-muted-foreground">Extras</span>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                W:{team.extras.wides} NB:{team.extras.noBalls}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+      {showScorecard && (
+        <ScorecardModal state={state} defaultTeam={teamKey} onClose={() => setShowScorecard(false)} />
       )}
-    </div>
+    </>
   )
 }
 
@@ -253,20 +263,22 @@ export function MatchResult({ state, onRestart, onQuit }: MatchResultProps) {
 
   return (
     <div
-      className="safe-top fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4"
+      className="fixed inset-0 z-50 overflow-y-auto"
       style={{ backgroundColor: "#070e06" }}
     >
       {/* Confetti */}
-      <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+      <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 h-full w-full" />
 
       {/* Scanlines */}
-      <div className="pointer-events-none absolute inset-0"
+      <div className="pointer-events-none fixed inset-0"
         style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 6px)" }} />
 
-      <div
-        className="relative z-10 flex w-full max-w-md flex-col items-center gap-5"
-        style={{ animation: "result-rise 0.55s ease-out both" }}
-      >
+      {/* Safe-area spacer + content */}
+      <div className="safe-top relative z-10 flex justify-center px-4 pb-8">
+        <div
+          className="flex w-full max-w-md flex-col items-center gap-5"
+          style={{ animation: "result-rise 0.55s ease-out both" }}
+        >
         {/* Header bar */}
         <div className="flex w-full items-center justify-center gap-3 rounded-xl border px-5 py-3"
           style={{ borderColor: winnerColor + "44", backgroundColor: winnerColor + "10" }}>
@@ -329,7 +341,8 @@ export function MatchResult({ state, onRestart, onQuit }: MatchResultProps) {
         <p className="pb-2 font-mono text-[9px] uppercase tracking-widest" style={{ color: "#2a4a2a" }}>
           Kriklu Cricket Board Game &mdash; 2025
         </p>
-      </div>
+        </div>{/* end max-w-md */}
+      </div>{/* end safe-top wrapper */}
 
       <style jsx>{`
         @keyframes result-rise {

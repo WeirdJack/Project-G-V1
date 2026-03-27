@@ -8,6 +8,7 @@ import { playSound } from "@/lib/cricket-game/sound-engine"
 interface TossOverlayProps {
   state: GameState
   onCall?: (call: "heads" | "tails") => void
+  onElect?: (choice: "bat" | "bowl") => void
 }
 
 // ── Cartoonish coin ─────────────────────────────────────────────────────────
@@ -278,11 +279,12 @@ function KrikMascot() {
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export function TossOverlay({ state, onCall }: TossOverlayProps) {
+export function TossOverlay({ state, onCall, onElect }: TossOverlayProps) {
   const soundPlayedRef = useRef(false)
   const [coinPhase, setCoinPhase] = useState<"idle" | "spinning" | "landed">("idle")
   const [userCall, setUserCall] = useState<"heads" | "tails" | null>(null)
   const [revealed, setRevealed] = useState(false)
+  const [elected, setElected] = useState(false)
   const [blinkOn, setBlinkOn] = useState(true)
 
   // Determine if we need the user to call first (toss not yet decided)
@@ -358,8 +360,6 @@ export function TossOverlay({ state, onCall }: TossOverlayProps) {
   const winnerIsTeam1 = state.toss.winner === "team1"
   const winnerColor = winnerIsTeam1 ? TEAM_1_COLOR : TEAM_2_COLOR
   const winnerName = winnerIsTeam1 ? team1Name : team2Name
-  const battingTeamName = state[state.battingTeamKey].name
-  const bowlingTeamName = state[state.bowlingTeamKey].name
   const coinResult: "heads" | "tails" = state.toss.winner === "team1" ? "heads" : "tails"
 
   return (
@@ -396,16 +396,40 @@ export function TossOverlay({ state, onCall }: TossOverlayProps) {
             )}
             <p className="font-sans text-xs text-muted-foreground">Toss won by</p>
             <p className="font-sans text-xl font-bold" style={{ color: winnerColor }}>{winnerName}</p>
-            <p className="font-sans text-sm text-muted-foreground">
-              elected to <span className="font-semibold text-foreground">{state.toss.choice}</span>
-            </p>
+
+            {/* Bat or Field election */}
+            {!elected ? (
+              <div className="mt-3 flex flex-col gap-2">
+                <p className="font-sans text-sm font-semibold text-foreground">{winnerName}, elect to...</p>
+                <div className="flex gap-2">
+                  {(["bat", "bowl"] as const).map((choice) => (
+                    <button
+                      key={choice}
+                      onClick={() => { setElected(true); onElect?.(choice) }}
+                      className="flex-1 rounded-xl border py-2.5 font-mono text-sm font-black uppercase tracking-wider transition-all hover:scale-105 active:scale-95"
+                      style={{
+                        borderColor: choice === "bat" ? "#8fda6a" : "#60a5fa",
+                        backgroundColor: choice === "bat" ? "#8fda6a18" : "#60a5fa18",
+                        color: choice === "bat" ? "#8fda6a" : "#60a5fa",
+                      }}
+                    >
+                      {choice === "bat" ? "Bat" : "Field"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="mt-1 font-sans text-sm text-muted-foreground">
+                elected to <span className="font-semibold text-foreground">{state.toss?.choice}</span>
+              </p>
+            )}
           </div>
         )}
 
-        {/* Batting / Bowling */}
-        {revealed && (
+        {/* Batting / Bowling summary — only after election */}
+        {revealed && elected && (
           <div className="flex w-full gap-2">
-            {[["Batting", battingTeamName], ["Bowling", bowlingTeamName]].map(([label, name]) => (
+            {[["Batting", state[state.battingTeamKey]?.name ?? ""], ["Bowling", state[state.bowlingTeamKey]?.name ?? ""]].map(([label, name]) => (
               <div key={label} className="flex flex-1 flex-col items-center gap-0.5 rounded-lg bg-secondary/50 px-2 py-2">
                 <span className="font-sans text-[9px] uppercase tracking-wider text-muted-foreground">{label}</span>
                 <span className="max-w-full truncate font-sans text-xs font-semibold text-foreground">{name}</span>
@@ -417,7 +441,7 @@ export function TossOverlay({ state, onCall }: TossOverlayProps) {
         {/* Mascot + starting */}
         <div className="flex items-center gap-3">
           <KrikMascot />
-          {revealed && (
+          {revealed && elected && (
             <p className="font-mono text-xs text-green-400" style={{ opacity: blinkOn ? 1 : 0 }}>
               Starting match...
             </p>

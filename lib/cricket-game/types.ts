@@ -116,6 +116,7 @@ export interface GameState {
 export type GameAction =
   | { type: "START_MATCH"; config: MatchConfig }
   | { type: "SET_TOSS"; toss: TossState }
+  | { type: "ELECT_CHOICE"; choice: "bat" | "bowl" }
   | { type: "COMPLETE_TOSS" }
   | { type: "ROLL_DICE" }
   | { type: "DICE_LANDED"; value: number }

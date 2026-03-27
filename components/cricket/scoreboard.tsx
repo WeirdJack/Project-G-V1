@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import type { GameState } from "@/lib/cricket-game/types"
 import { getOverString } from "@/lib/cricket-game/game-engine"
 import { TEAM_1_COLOR, TEAM_2_COLOR } from "@/lib/cricket-game/constants"
+import { ScorecardModal } from "./scorecard"
 
 interface ScoreboardProps {
   state: GameState
@@ -13,33 +15,32 @@ export function ScoreboardTeam({ state }: ScoreboardProps) {
   const batting = state[state.battingTeamKey]
   const battingColor = state.battingTeamKey === "team1" ? TEAM_1_COLOR : TEAM_2_COLOR
   const oversStr = getOverString(batting.overs, batting.balls)
+  const [open, setOpen] = useState(false)
 
   return (
-    <div 
-      className="flex flex-col items-start rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border"
-      style={{ borderColor: battingColor }}
-    >
-      <div className="flex items-center gap-1">
-        <span
-          className="h-2 w-2 rounded-full"
-          style={{ backgroundColor: battingColor }}
-        />
-        <span 
-          className="font-sans text-[11px] font-bold"
-          style={{ color: battingColor }}
-        >
-          {batting.name}
-        </span>
-      </div>
-      <div className="flex items-baseline gap-1">
-        <span className="font-mono text-lg font-bold text-foreground leading-tight">
-          {batting.totalRuns}/{batting.wickets}
-        </span>
-        <span className="font-mono text-[9px] text-muted-foreground">
-          ({oversStr})
-        </span>
-      </div>
-    </div>
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex flex-col items-start rounded-md bg-background/90 px-2 py-1.5 backdrop-blur-sm border text-left transition-opacity hover:opacity-80 active:scale-95"
+        style={{ borderColor: battingColor }}
+      >
+        <div className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: battingColor }} />
+          <span className="font-sans text-[11px] font-bold" style={{ color: battingColor }}>
+            {batting.name}
+          </span>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="font-mono text-lg font-bold text-foreground leading-tight">
+            {batting.totalRuns}/{batting.wickets}
+          </span>
+          <span className="font-mono text-[9px] text-muted-foreground">({oversStr})</span>
+        </div>
+      </button>
+      {open && (
+        <ScorecardModal state={state} defaultTeam={state.battingTeamKey} onClose={() => setOpen(false)} />
+      )}
+    </>
   )
 }
 
