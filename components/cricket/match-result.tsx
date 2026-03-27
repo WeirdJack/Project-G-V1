@@ -343,13 +343,6 @@ export function MatchResult({ state, onRestart, onQuit }: MatchResultProps) {
         </p>
         </div>{/* end max-w-md */}
       </div>{/* end safe-top wrapper */}
-
-      <style jsx>{`
-        @keyframes result-rise {
-          0% { opacity:0; transform: translateY(30px); }
-          100% { opacity:1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   )
 }

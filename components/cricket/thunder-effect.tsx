@@ -41,7 +41,9 @@ export function ThunderEffect({ state }: ThunderEffectProps) {
   useEffect(() => {
     const sq = state.lastSquareLanded
     if (!sq) return
-    const key = `${sq.type}-${state.team1.totalRuns}-${state.team2.totalRuns}`
+    // Use balls bowled as part of key so each delivery triggers independently
+    const batting = state[state.battingTeamKey]
+    const key = `${sq.type}-${batting.overs}-${batting.balls}-${batting.totalRuns}`
     if (key === prevSquareRef.current) return
     prevSquareRef.current = key
 
@@ -69,7 +71,7 @@ export function ThunderEffect({ state }: ThunderEffectProps) {
       setBolts(Array.from({ length: Math.ceil(count / 2) }, (_, i) => randomBolt(++idRef.current, isSix)))
     }, 180)
     setTimeout(() => setBolts([]), 420)
-  }, [state.lastSquareLanded, state.team1.totalRuns, state.team2.totalRuns])
+  }, [state.lastSquareLanded, state.battingTeamKey, state.team1.overs, state.team1.balls, state.team2.overs, state.team2.balls])
 
   if (bolts.length === 0 && !flash) return null
 

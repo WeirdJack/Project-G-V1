@@ -132,3 +132,8 @@ html.android-native {
 html.android-native body {
   padding-top: 0 !important;
 }
+
+@keyframes result-rise {
+  0%   { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
