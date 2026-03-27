@@ -47,7 +47,7 @@ export function ThunderEffect({ state }: ThunderEffectProps) {
     if (key === prevSquareRef.current) return
     prevSquareRef.current = key
 
-    const isFour = sq.type === "four"
+    const isFour = sq.type === "boundary"
     const isSix = sq.type === "six"
     if (!isFour && !isSix) return
 
