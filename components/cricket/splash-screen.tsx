@@ -80,7 +80,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   useEffect(() => {
     const holdTimer = setTimeout(() => setPhase("hold"), 100)
     const readyTimer = setTimeout(() => setPhase("ready"), 1200)
-    return () => { clearTimeout(holdTimer); clearTimeout(readyTimer) }
+    // Play intro jingle once the screen is visible
+    const jingleTimer = setTimeout(() => {
+      try { playSound("intro") } catch { /* silently fail if audio locked */ }
+    }, 400)
+    return () => { clearTimeout(holdTimer); clearTimeout(readyTimer); clearTimeout(jingleTimer) }
   }, [])
 
   useEffect(() => {

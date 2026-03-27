@@ -36,9 +36,6 @@ export function ScoreboardTeam({ state }: ScoreboardProps) {
           </span>
           <span className="font-mono text-[9px] text-muted-foreground">({oversStr})</span>
         </div>
-        <span className="font-mono text-[8px] uppercase tracking-wider" style={{ color: battingColor + "99" }}>
-          tap for scorecard
-        </span>
       </button>
       {open && (
         <ScorecardModal state={state} defaultTeam={state.battingTeamKey} onClose={() => setOpen(false)} />
