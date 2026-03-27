@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react"
 import { useCricketGame } from "@/hooks/use-cricket-game"
 import { useGameSounds } from "@/hooks/use-game-sounds"
 import { startBackgroundMusic, stopBackgroundMusic, unlockAudio } from "@/lib/cricket-game/sound-engine"
-import { Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut } from "lucide-react"
+import { Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, ClipboardList } from "lucide-react"
 import { CricketFieldBg } from "./cricket-field-bg"
 import { SplashScreen } from "./splash-screen"
 import { MatchSetup } from "./match-setup"
@@ -14,18 +14,20 @@ import { Dice } from "./dice"
 import { ScoreboardTeam, ScoreboardTarget, ScoreboardBatter, ScoreboardBowler, ThisOver } from "./scoreboard"
 import { CommentaryFeed } from "./commentary-feed"
 import { Umpire } from "./umpire"
-import { InningsSummary } from "./innings-summary"
+import { ScorecardModal } from "./scorecard"
 import { MatchResult } from "./match-result"
 import { DuckWalk } from "./duck-walk"
+import { ThunderEffect } from "./thunder-effect"
 
 import type { GameMode } from "@/lib/cricket-game/types"
 
 export function CricketGame() {
-  const { state, startMatch, callToss, rollDice, startNextInnings, restart, restartSameConfig } = useCricketGame()
+  const { state, startMatch, callToss, electChoice, rollDice, startNextInnings, restart, restartSameConfig } = useCricketGame()
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [showSplash, setShowSplash] = useState(true)
   const [gameMode, setGameMode] = useState<GameMode>("local")
   const [autoComplete, setAutoComplete] = useState(false)
+  const [scorecardOpen, setScorecardOpen] = useState(false)
   useGameSounds(state, soundEnabled)
 
   // Start bg music when on setup page, stop when match starts
@@ -61,7 +63,7 @@ export function CricketGame() {
 
   // Toss phase
   if (state.phase === "toss") {
-    return <TossOverlay state={state} onCall={callToss} />
+    return <TossOverlay state={state} onCall={callToss} onElect={electChoice} />
   }
 
   // Innings break
@@ -79,10 +81,24 @@ export function CricketGame() {
   // Batting phase - main game UI
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background" onClick={unlockAudio}>
+      <ThunderEffect state={state} />
+      {scorecardOpen && (
+        <ScorecardModal state={state} defaultTeam={state.battingTeamKey} onClose={() => setScorecardOpen(false)} />
+      )}
       {/* Top bar */}
       <header className="flex shrink-0 items-center justify-between border-b border-border/30 px-3 py-2">
         <h1 className="font-sans text-sm font-semibold text-foreground">Kriklu</h1>
         <div className="flex items-center gap-2">
+          {/* Scorecard button */}
+          <button
+            onClick={() => setScorecardOpen(true)}
+            title="View scorecard"
+            className="flex h-7 items-center gap-1 rounded-md border border-border/40 px-2 font-sans text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+          >
+            <ClipboardList className="h-3.5 w-3.5" />
+            <span>Card</span>
+          </button>
+
           {/* Sound toggle */}
           <button
             onClick={() => setSoundEnabled((v) => !v)}

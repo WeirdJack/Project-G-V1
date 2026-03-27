@@ -68,8 +68,16 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case "SET_TOSS": {
-      const withToss = applyToss(state, action.toss)
-      return { ...withToss, toss: { ...action.toss, isAnimating: true } }
+      // Store toss winner but do NOT apply batting/bowling keys yet —
+      // wait for winner to elect bat or field (ELECT_CHOICE)
+      return { ...state, toss: { ...action.toss, isAnimating: true } }
+    }
+
+    case "ELECT_CHOICE": {
+      if (!state.toss) return state
+      const updatedToss = { ...state.toss, choice: action.choice }
+      const withToss = applyToss(state, updatedToss)
+      return { ...withToss, toss: updatedToss }
     }
 
     case "COMPLETE_TOSS": {
@@ -164,14 +172,18 @@ export function useCricketGame() {
   }, [])
 
   const callToss = useCallback((_call: "heads" | "tails") => {
-    // Perform toss after a short delay to let coin spin
     setTimeout(() => {
       const toss = performToss()
       dispatch({ type: "SET_TOSS", toss })
-      setTimeout(() => {
-        dispatch({ type: "COMPLETE_TOSS" })
-      }, 3500)
+      // COMPLETE_TOSS now triggered after winner elects bat/field
     }, 400)
+  }, [])
+
+  const electChoice = useCallback((choice: "bat" | "bowl") => {
+    dispatch({ type: "ELECT_CHOICE", choice })
+    setTimeout(() => {
+      dispatch({ type: "COMPLETE_TOSS" })
+    }, 2200)
   }, [])
 
   const handleRollDice = useCallback(() => {
@@ -251,6 +263,7 @@ export function useCricketGame() {
     state,
     startMatch,
     callToss,
+    electChoice,
     rollDice: handleRollDice,
     startNextInnings,
     restart,

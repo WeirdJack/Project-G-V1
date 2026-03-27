@@ -462,7 +462,7 @@ export function MatchSetup({ onStart, mode, onQuit }: MatchSetupProps) {
                 className="pointer-events-none absolute inset-0 rounded-lg"
                 style={{ background: "linear-gradient(180deg, #4a8a3a22 0%, transparent 60%)" }}
               />
-              Toss the Coin
+              Coin Toss
             </button>
           </div>
         </div>
