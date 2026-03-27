@@ -36,9 +36,9 @@ function squareTypeToSignal(type: SquareType | null): UmpireSignal {
     case "six":      return "six"
     case "wide":     return "wide"
     case "no-ball":  return "no-ball"
-    case "single":   return "single"
-    case "double":   return "double"
-    case "triple":   return "triple"
+    case "single":   return "runs"
+    case "double":   return "runs"
+    case "triple":   return "runs"
     case "dot":      return "dot"
     default:         return "idle"
   }
