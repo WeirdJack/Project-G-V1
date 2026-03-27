@@ -335,7 +335,7 @@ function playIntroJingle() {
   }
 }
 
-  // Realistic coin flip - thumb flick, spinning in air, catching, and slap reveal
+function playCoinToss() {
   const ctx = getCtx()
   
   // Initial thumb flick - sharp metallic ping
