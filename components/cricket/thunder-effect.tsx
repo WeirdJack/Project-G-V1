@@ -9,82 +9,132 @@ interface ThunderEffectProps {
 
 interface Bolt {
   id: number
-  x: number
   path: string
+  glowColor: string
+  coreColor: string
   opacity: number
-  color: string
+  strokeWidth: number
 }
 
-function randomBolt(id: number, isSix: boolean): Bolt {
-  const x = 5 + Math.random() * 90
-  const color = isSix ? "#ffe066" : "#88eeff"
-  // Generate a jagged lightning path downward
-  let path = `M ${x} 0`
+// Vertical jagged bolt (for SIX) — top to bottom
+function makeSixBolt(id: number): Bolt {
+  const startX = 5 + Math.random() * 90
+  let path = `M ${startX} 0`
   let cy = 0
-  let cx = x
-  while (cy < 100) {
-    const dy = 8 + Math.random() * 14
-    const dx = (Math.random() - 0.5) * 18
-    cy += dy
-    cx += dx
-    path += ` L ${cx} ${cy}`
+  let cx = startX
+  while (cy < 105) {
+    cy += 7 + Math.random() * 12
+    cx += (Math.random() - 0.5) * 20
+    path += ` L ${cx.toFixed(1)} ${cy.toFixed(1)}`
   }
-  return { id, x, path, opacity: 0.85 + Math.random() * 0.15, color }
+  return {
+    id,
+    path,
+    glowColor: "#ffe066",
+    coreColor: "#fff8b0",
+    opacity: 0.85 + Math.random() * 0.15,
+    strokeWidth: 0.9,
+  }
+}
+
+// Horizontal streak (for FOUR) — side to side with slight diagonal
+function makeFourStreak(id: number): Bolt {
+  const startY = 10 + Math.random() * 80
+  let path = `M -2 ${startY}`
+  let cx = 0
+  let cy = startY
+  while (cx < 105) {
+    cx += 8 + Math.random() * 14
+    cy += (Math.random() - 0.5) * 10
+    path += ` L ${cx.toFixed(1)} ${cy.toFixed(1)}`
+  }
+  return {
+    id,
+    path,
+    glowColor: "#00e5ff",
+    coreColor: "#b0f8ff",
+    opacity: 0.8 + Math.random() * 0.2,
+    strokeWidth: 0.7,
+  }
 }
 
 export function ThunderEffect({ state }: ThunderEffectProps) {
   const [bolts, setBolts] = useState<Bolt[]>([])
-  const [flash, setFlash] = useState<{ color: string; opacity: number } | null>(null)
-  const prevSquareRef = useRef<string | null>(null)
+  const [flash, setFlash] = useState<{ color: string } | null>(null)
+  // Track last triggered ball event by a stable string key
+  const prevKeyRef = useRef<string>("")
   const idRef = useRef(0)
 
   useEffect(() => {
     const sq = state.lastSquareLanded
     if (!sq) return
-    // Use balls bowled as part of key so each delivery triggers independently
-    const batting = state[state.battingTeamKey]
-    const key = `${sq.type}-${batting.overs}-${batting.balls}-${batting.totalRuns}`
-    if (key === prevSquareRef.current) return
-    prevSquareRef.current = key
 
     const isFour = sq.type === "boundary"
-    const isSix = sq.type === "six"
+    const isSix  = sq.type === "six"
     if (!isFour && !isSix) return
+
+    // Build a key from the ball event itself + run total so it's unique per ball
+    const batting = state[state.battingTeamKey]
+    const key = `${sq.type}|${batting.overs}|${batting.balls}|${batting.totalRuns}|${batting.wickets}`
+    if (key === prevKeyRef.current) return
+    prevKeyRef.current = key
 
     // Haptic vibration
     if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate(isSix ? [80, 40, 120] : [60])
+      navigator.vibrate(isSix ? [60, 30, 100, 30, 80] : [80, 30, 50])
     }
 
-    // Screen flash
-    const flashColor = isSix ? "rgba(255,220,50,0.22)" : "rgba(100,220,255,0.18)"
-    setFlash({ color: flashColor, opacity: 1 })
-    setTimeout(() => setFlash(null), 500)
+    // Flash colour differs: cyan for four, gold for six
+    setFlash({ color: isSix ? "rgba(255,220,50,0.20)" : "rgba(0,229,255,0.15)" })
+    setTimeout(() => setFlash(null), isSix ? 550 : 400)
 
-    // Generate multiple bolts
+    // First wave of bolts
     const count = isSix ? 8 : 5
-    const newBolts = Array.from({ length: count }, (_, i) => randomBolt(++idRef.current, isSix))
-    setBolts(newBolts)
+    const make = isSix ? makeSixBolt : makeFourStreak
+    setBolts(Array.from({ length: count }, () => make(++idRef.current)))
 
-    // Two flicker rounds for realism
-    setTimeout(() => {
-      setBolts(Array.from({ length: Math.ceil(count / 2) }, (_, i) => randomBolt(++idRef.current, isSix)))
-    }, 180)
-    setTimeout(() => setBolts([]), 420)
-  }, [state.lastSquareLanded, state.battingTeamKey, state.team1.overs, state.team1.balls, state.team2.overs, state.team2.balls])
+    // Second flicker
+    const t1 = setTimeout(() => {
+      setBolts(Array.from({ length: Math.ceil(count * 0.6) }, () => make(++idRef.current)))
+    }, isSix ? 170 : 140)
+
+    // Third flicker (sixes only)
+    const t2 = isSix
+      ? setTimeout(() => {
+          setBolts(Array.from({ length: 4 }, () => makeSixBolt(++idRef.current)))
+        }, 310)
+      : null
+
+    // Clear
+    const t3 = setTimeout(() => setBolts([]), isSix ? 500 : 380)
+
+    return () => {
+      clearTimeout(t1)
+      if (t2) clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    state.lastSquareLanded,
+    state.battingTeamKey,
+    // Include ball-level counters so the effect always re-runs on each delivery
+    state.team1.balls,
+    state.team1.overs,
+    state.team1.totalRuns,
+    state.team2.balls,
+    state.team2.overs,
+    state.team2.totalRuns,
+  ])
 
   if (bolts.length === 0 && !flash) return null
 
   return (
-    <div
-      className="pointer-events-none fixed inset-0 z-40 overflow-hidden"
-      aria-hidden="true"
-    >
+    <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden" aria-hidden="true">
       {/* Full-screen flash */}
       {flash && (
         <div
-          className="absolute inset-0 transition-opacity duration-500"
-          style={{ backgroundColor: flash.color }}
+          className="absolute inset-0"
+          style={{ backgroundColor: flash.color, transition: "opacity 0.4s ease-out" }}
         />
       )}
 
@@ -96,32 +146,31 @@ export function ThunderEffect({ state }: ThunderEffectProps) {
       >
         {bolts.map((bolt) => (
           <g key={bolt.id}>
-            {/* Glow outer */}
+            {/* Outer glow */}
             <path
               d={bolt.path}
-              stroke={bolt.color}
-              strokeWidth="2.5"
+              stroke={bolt.glowColor}
+              strokeWidth={bolt.strokeWidth * 4}
               fill="none"
-              opacity={bolt.opacity * 0.35}
+              opacity={bolt.opacity * 0.3}
               strokeLinecap="round"
-              filter="blur(3px)"
             />
-            {/* Core bolt */}
+            {/* Mid glow */}
             <path
               d={bolt.path}
-              stroke={bolt.color}
-              strokeWidth="0.8"
+              stroke={bolt.glowColor}
+              strokeWidth={bolt.strokeWidth * 2}
+              fill="none"
+              opacity={bolt.opacity * 0.55}
+              strokeLinecap="round"
+            />
+            {/* Core */}
+            <path
+              d={bolt.path}
+              stroke={bolt.coreColor}
+              strokeWidth={bolt.strokeWidth}
               fill="none"
               opacity={bolt.opacity}
-              strokeLinecap="round"
-            />
-            {/* Bright white core */}
-            <path
-              d={bolt.path}
-              stroke="white"
-              strokeWidth="0.3"
-              fill="none"
-              opacity={bolt.opacity * 0.7}
               strokeLinecap="round"
             />
           </g>
