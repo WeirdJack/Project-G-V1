@@ -49,11 +49,11 @@ export function DuckWalk({ state, soundEnabled }: DuckWalkProps) {
       quackTimer.current = setTimeout(() => playSound("duck-quack"), 1400)
     }
 
-    // Hide after animation (~3.8s)
+    // Hide after animation (~5.5s)
     hideTimer.current = setTimeout(() => {
       setVisible(false)
       if (stepTimer.current) clearInterval(stepTimer.current)
-    }, 3900)
+    }, 5600)
 
     return () => {
       if (quackTimer.current) clearTimeout(quackTimer.current)
@@ -69,13 +69,13 @@ export function DuckWalk({ state, soundEnabled }: DuckWalkProps) {
       className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-2xl"
       aria-hidden="true"
     >
-      {/* Duck + label walking right-to-left */}
+      {/* Duck + label walking left-to-right */}
       <div
         style={{
           position: "absolute",
           bottom: "30%",
-          right: "-80px",
-          animation: "duck-cross 3.8s linear forwards",
+          left: "-80px",
+          animation: "duck-cross 5.5s linear forwards",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -104,7 +104,7 @@ export function DuckWalk({ state, soundEnabled }: DuckWalkProps) {
       <style jsx>{`
         @keyframes duck-cross {
           0%   { transform: translateX(0); }
-          100% { transform: translateX(calc(-100vw - 160px)); }
+          100% { transform: translateX(calc(100vw + 160px)); }
         }
       `}</style>
     </div>
