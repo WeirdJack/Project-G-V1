@@ -31,12 +31,18 @@ export function DuckWalk({ state, soundEnabled }: DuckWalkProps) {
     if (sq?.type !== "wicket") return
     if (sq === prev) return
 
+    // Get the dismissed batter's name from the last wicket ball event
+    // (currentBatsmanIndex has already advanced to the next batter by this point)
     const batting = state[state.battingTeamKey]
-    const batter = batting.players[batting.currentBatsmanIndex]
-    if (!batter) return
-    if (batter.runs !== 0) return
+    const lastWicketEvent = [...batting.ballEvents].reverse().find((e) => e.isWicket)
+    const dismissedName = lastWicketEvent?.batsmanName ?? batting.players[batting.currentBatsmanIndex]?.name ?? ""
+    if (!dismissedName) return
 
-    setBatsmanName(batter.name)
+    // Only show if the dismissed batter scored 0
+    const dismissedPlayer = batting.players.find((p) => p.name === dismissedName)
+    if (!dismissedPlayer || dismissedPlayer.runs !== 0) return
+
+    setBatsmanName(dismissedName)
     setVisible(true)
     setStep(0)
 
