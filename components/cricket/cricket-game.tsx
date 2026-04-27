@@ -16,6 +16,7 @@ import { CommentaryFeed } from "./commentary-feed"
 import { Umpire } from "./umpire"
 import { ScorecardModal } from "./scorecard"
 import { MatchResult } from "./match-result"
+import { InningsSummary } from "./innings-summary"
 import { DuckWalk } from "./duck-walk"
 import { ThunderEffect } from "./thunder-effect"
 
